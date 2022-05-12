@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: hippograd
+Version: 0.1.0
+Summary: hippograd - My template snakebids app.
+Home-page: http://github.com/myousif9/hippograd
+Author: Mohamed Yousif
+Author-email: myousif9@uwo.ca
+License: UNKNOWN
+Description: hippograd
+        ============
+        
+        My template snakebids app.
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.7
+Description-Content-Type: text/x-rst

@@ -1,0 +1,179 @@
+#---- begin snakebids boilerplate ----------------------------------------------
+
+import snakebids
+from snakebids import bids
+from os.path import join
+from itertools import compress
+from operator import itemgetter
+from glob import glob
+
+
+configfile: 'config/snakebids.yml'
+
+#writes inputs_config.yml and updates config dict
+config.update(
+    snakebids.generate_inputs(
+        bids_dir=config['bids_dir'],
+        pybids_inputs=config['pybids_inputs'],
+        derivatives=config['derivatives'],
+        participant_label=config['participant_label'],
+        exclude_participant_label=config['exclude_participant_label']
+    )
+)
+
+
+
+#this adds constraints to the bids naming
+wildcard_constraints:  **snakebids.get_wildcard_constraints(\
+    config['pybids_inputs']\
+)
+
+#---- end snakebids boilerplate ------------------------------------------------
+
+# handling hippunfold data
+# defining variable for hippunfold and checking that end directory is 'hippunfold', if not 'hippunfold' is  added to file path
+hippunfold_dir = config['hippunfold_dir'].rstrip('/')
+hippunfold_dir = join(hippunfold_dir,'hippunfold') if 'hippunfold' != hippunfold_dir.split('/')[-1] else hippunfold_dir
+
+hippunfold_subjects = [sub for sub in os.listdir(hippunfold_dir) if 'sub-' in sub]
+hippunfold_paths = [glob(join(hippunfold_dir, "sub-{subject}/surf/sub-{subject}_hemi-*_space-T1w_den-0p5mm_label-hipp_midthickness.surf.gii".format(subject=subj, density=config['density'])))[0].replace('hemi-L','hemi-{hemi}').replace('hemi-R','hemi-{hemi}') for subj in hippunfold_subjects]
+
+hippunfold_input_list = [[], []]
+
+for idx, hippopath in enumerate(hippunfold_paths):
+    if hippopath != None:
+        hippunfold_input_list[0].append(idx), hippunfold_input_list[1].append(hippopath)
+    else:
+        continue
+
+
+getter = itemgetter(*hippunfold_input_list[0])
+hippunfold_subjects = getter(hippunfold_subjects)
+hippunfold_subj_set = set(hippunfold_subjects)
+
+hippunfold_surf_list = dict(zip(hippunfold_subjects , hippunfold_input_list[1]))
+
+
+
+# storing input wildcards, input lists and zip lists in more accessible names
+# wildcards
+subj_wildcards = config['subj_wildcards']
+fmri_wildcards = config['input_wildcards']['bold_volume']
+transform_wildcards = config['input_wildcards']['reverse_transform']
+
+# input lists
+bold_vol_inlist = config['input_lists']['bold_volume']
+bold_surf_inlist = config['input_lists']['bold_surf']
+transform_inlist = config['input_lists']['reverse_transform']
+
+# zip lists
+bold_vol_ziplist = config['input_zip_lists']['bold_volume']
+bold_surf_ziplist = config['input_zip_lists']['bold_surf']
+
+# merging all subjects into unified list retaining only subjects with all required input files
+subjects = set()
+subjects.union(set(bold_vol_inlist['subject']))
+subjects.union(set(bold_surf_inlist['subject']))
+subjects.union(set(transform_inlist['subjects']))
+subjects.union(hippunfold_subj_set)
+
+# converting subjects set to list and assigning all input lists similar subject inputs
+subjects = list(subjects)
+
+bold_vol_inlist['subjects'] = subjects
+bold_surf_inlist['subjects'] = subjects
+transform_inlist['subjects'] = subjects
+
+# logic for handling multiple runs, such that the higher number run is always selected
+if 'run' in bold_vol_ziplist.keys():
+    for sub_idx, subj in enumerate(subjects):
+        sub_bool = bold_vol_ziplist['subject'] == subj
+        if  sum(sub_bool) > 1 :
+            
+            sub_indicies = list(compress(range(len(bold_vol_ziplist['run'])), sub_bool))
+            sub_runs = bold_vol_ziplist['run'][sub_indicies]
+            
+            min_run_idx = compress(sub_indicies, sub_runs == min(sub_runs))[0]
+            
+            for param in bold_vol_ziplist:
+                del bold_vol_ziplist[param][min_run_idx]
+                del bold_surf_ziplist[param][min_run_idx]
+        else:
+            continue
+
+
+rule all:
+    input:
+        expand(bids(
+            root = 'results',
+            datatype = 'func',
+            task = '{task}',
+            desc = 'cleaned',
+            suffix = 'bold.nii.gz',
+            **subj_wildcards),
+            zip,
+            **bold_vol_ziplist
+            ),
+
+        expand(bids(
+            root = 'results',
+            datatype = 'func',
+            task = '{task}',
+            space = 'fsLR',
+            desc = 'cleaned',
+            suffix = 'bold.dtseries.nii',
+            **subj_wildcards),
+            zip,
+            **bold_surf_wildcards
+            ),
+
+        expand(bids(
+            root = 'results',
+            datatype = 'func',
+            task = '{task}',
+            hemi = '{hemi}',
+            space = 'MNI152NLin2009cAsym',
+            den = '{density}',
+            suffix = 'bold.func.gii',
+            **subj_wildcards),
+            task = config['task'],
+            density=config['density'],
+            hemi = config['hemi'],
+            **transform_inlist
+            ),
+
+        expand(bids(
+            root = 'results',
+            datatype = 'func',
+            task = '{task}',
+            hemi = '{hemi}',
+            space = 'MNI152NLin2009cAsym',
+            den = '{density}',
+            desc = 'aligned',
+            suffix = 'gradients.func.gii',
+            **inputs.subj_wildcards),
+            task = config['task'], 
+            density=config['density'],
+            hemi = config['hemi'],
+            **transform_inlist
+            ),
+
+        expand(bids(
+            root = 'work',
+            datatype = 'func',
+            task = '{task}',
+            hemi = '{hemi}',
+            den = '{density}',
+            suffix = 'func.done',
+            **inputs.subj_wildcards),
+            task = config['task'], 
+            density=config['density'],
+            hemi = config['hemi'],
+            **transform_inlist
+            ),
+
+include: 'rules/fmriclean.smk'
+
+include: 'rules/post_hippunfold.smk'
+
+include: 'rules/post_fmriclean.smk'

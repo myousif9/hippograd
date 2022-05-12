@@ -1,0 +1,15 @@
+{
+    "Name": "hippograd - My template snakebids app.",
+    "BIDSVersion": "1.4.0",
+    "DatasetType": "derivative",
+    "GeneratedBy": [
+        {
+            "Name": "hippograd",
+            "Version": "0.1.0",
+            "CodeURL": "http://github.com/myousif9/hippograd",
+            "Author": "Mohamed Yousif",
+            "AuthorEmail": "myousif9@uwo.ca"
+ 
+        }
+    ]
+}

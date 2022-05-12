@@ -1,0 +1,8 @@
+README.rst
+setup.py
+hippograd.egg-info/PKG-INFO
+hippograd.egg-info/SOURCES.txt
+hippograd.egg-info/dependency_links.txt
+hippograd.egg-info/entry_points.txt
+hippograd.egg-info/requires.txt
+hippograd.egg-info/top_level.txt

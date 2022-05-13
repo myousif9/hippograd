@@ -1,146 +1,173 @@
-bids_dir: /project/6050199/akhanf/ext-bids/maastricht_dm2/DM2_dataset
-output_dir: /scratch/myousif9/DM2_gradtest5
-debug: false
-derivatives: true
-analysis_levels: &id001
-- participant
+bids_dir: '/path/to/bids_dir'
+output_dir: '/path/to/output_dir'
+
+#enable printing debug statements during parsing -- disable if generating dag visualization
+debug: True
+
+derivatives: True #will search in bids/derivatives if True; can also be path(s) to derivatives datasets
+
+#list of analysis levels in the bids app 
+analysis_levels: &analysis_levels
+ - participant
+  
+
+#mapping from analysis_level to set of target rules or files
 targets_by_analysis_level:
   participant:
-  - ''
+    - ''  # if '', then the first rule is run
+
+#this configures the pybids grabber - create an entry for each type of input you want to grab
+# indexed by name of input
+#   dictionary for each input is passed directly to pybids get()
+#    https://bids-standard.github.io/pybids/generated/bids.layout.BIDSLayout.html#bids.layout.BIDSLayout.get
+
 pybids_inputs:
   bold_surf:
     filters:
-      suffix: bold
-      extension: .dtseries.nii
-      datatype: func
-      scope: derivatives
-      task: rest
-      space: fsLR
-      invalid_filters: allow
+      suffix: 'bold'
+      extension: '.dtseries.nii'
+      datatype: 'func'
+      scope: 'derivatives'
+      task: 'rest'
+      space: 'fsLR'
+      invalid_filters: 'allow'
     wildcards:
-    - subject
-    - session
-    - acquisition
-    - task
-    - run
+      - subject
+      - session
+      - acquisition
+      - task
+      - run
+  
   bold_volume:
     filters:
-      suffix: bold
-      extension: .nii.gz
-      datatype: func
-      scope: derivatives
-      task: rest
-      space: MNI152NLin2009cAsym
-      invalid_filters: allow
+      suffix: 'bold'
+      extension: '.nii.gz'
+      datatype: 'func'
+      scope: 'derivatives'
+      task: 'rest'
+      space: 'MNI152NLin2009cAsym'
+      invalid_filters: 'allow'
     wildcards:
-    - subject
-    - session
-    - acquisition
-    - task
-    - run
+        - subject
+        - session
+        - acquisition
+        - task
+        - run
+  
   reverse_transform:
     filters:
-      suffix: xfm
-      extension: .h5
-      datatype: anat
-      scope: derivatives
-      from: MNI152NLin2009cAsym
-      to: T1w
-      invalid_filters: allow
+      suffix: 'xfm'
+      extension: '.h5'
+      datatype: 'anat'
+      scope: 'derivatives'
+      from: 'MNI152NLin2009cAsym'
+      to: 'T1w'
+      invalid_filters: 'allow'
     wildcards:
-    - subject
-    - session
-    - acquisition
-    - task
-    - run
+      - subject
+      - session
+      - acquisition
+      - task
+      - run
+
+#configuration for the command-line parameters to make available
+# passed on the argparse add_argument()
 parse_args:
+
+#---  core BIDS-app options --- (do not modify below) 
+
   bids_dir:
-    help: The directory with the input dataset formatted according to the BIDS standard.
+    help: The directory with the input dataset formatted according 
+          to the BIDS standard.
+
   output_dir:
-    help: The directory where the output files should be stored. If you are running
-      group level analysis this folder should be prepopulated with the results of
-      the participant level analysis.
-  analysis_level:
-    help: Level of the analysis that will be performed.
-    choices: *id001
+    help: The directory where the output files 
+          should be stored. If you are running group level analysis
+          this folder should be prepopulated with the results of the
+          participant level analysis.
+
+  analysis_level: 
+    help: Level of the analysis that will be performed. 
+    choices: *analysis_levels
+
   --participant_label:
-    help: The label(s) of the participant(s) that should be analyzed. The label corresponds
-      to sub-<participant_label> from the BIDS spec (so it does not include "sub-").
-      If this parameter is not provided all subjects should be analyzed. Multiple
-      participants can be specified with a space separated list.
-    nargs: +
+    help: The label(s) of the participant(s) that should be analyzed. The label 
+          corresponds to sub-<participant_label> from the BIDS spec 
+          (so it does not include "sub-"). If this parameter is not 
+          provided all subjects should be analyzed. Multiple 
+          participants can be specified with a space separated list.
+    nargs: '+'
+
   --exclude_participant_label:
-    help: The label(s) of the participant(s) that should be excluded. The label corresponds
-      to sub-<participant_label> from the BIDS spec (so it does not include "sub-").
-      If this parameter is not provided all subjects should be analyzed. Multiple
-      participants can be specified with a space separated list.
-    nargs: +
+    help: The label(s) of the participant(s) that should be excluded. The label 
+          corresponds to sub-<participant_label> from the BIDS spec 
+          (so it does not include "sub-"). If this parameter is not 
+          provided all subjects should be analyzed. Multiple 
+          participants can be specified with a space separated list.
+    nargs: '+'
+
   --derivatives:
-    help: 'Path(s) to a derivatives dataset, for folder(s) that contains multiple
-      derivatives datasets (default: %(default)s) '
-    default: true
-    nargs: +
+    help: 'Path(s) to a derivatives dataset, for folder(s) that contains multiple derivatives datasets (default: %(default)s) '
+    default: True
+    nargs: '+'
+
+ # custom command-line parameters can then be added, these will get added to the config
+ # below is an example to override config['bet_frac']
   --hippunfold_dir:
     help: The directory with completed hippunfold output.
-    required: true
+    required: True
+
   --fmri_clean_strategy:
-    help: Selecting from predefined fmri cleaning strategies
+    help: 'Selecting from predefined fmri cleaning strategies'
     default: simple
     choices:
-    - simple
-    - srubbing
-    - compcor
-    - ica_aroma
-    required: false
+      - simple
+      - srubbing
+      - compcor
+      - ica_aroma
+    required: False
     nargs: 1
+
   --density:
-    help: Define the densities of the hippocampal surfaces to extract gradients for
-      either '0p5mm'(0.5mm), '1mm' or 2mm. Default is only 0p5mm surface.
-    default: 0p5mm
+    help: Define the densities of the hippocampal surfaces to extract gradients for either '0p5mm'(0.5mm), '1mm' or 2mm. Default is only 0p5mm surface.
+    default: 0p5mm 
     choices:
-    - 0p5mm
-    - 1mm
-    - 2mm
-    nargs: +
-    required: false
+      - 0p5mm
+      - 1mm
+      - 2mm
+    nargs: '+' 
+    required: False
+
   --hemi:
     help: Define the hemispheres of the hippocampus to run this pipeline with.
     default:
-    - L
-    - R
+      - L
+      - R
     choices:
-    - L
-    - R
-    nargs: +
-    required: false
+      - L
+      - R
+    nargs: '+'
+    required: False
+  
   --task:
     help: Define task event for fMRI acquision.
     default: rest
     nargs: 1
-    required: false
+    required: False
+  
+  --reference_gradient:
+    help: Passing reference gradient for allignment of subject gradients
+    required: False
+    
+#--- workflow specific configuration -- below is just an example:
+
 n_gradients: 10
+
+#singularity containers
 singularity:
-  ants: /scratch/myousif9/containers/ants_2.3.4.sif
-  autotop: /scratch/myousif9/containers/autotop_deps_nighres.sif
-  xcpengine: /project/ctb-akhanf/rhaast/01_Software/singularity/pennbbl_xcpengine_latest.sif
-snakemake_dir: /scratch/myousif9/Software/hippograd/hippograd
-snakefile: /scratch/myousif9/Software/hippograd/hippograd/workflow/Snakefile
-snakemake_args:
-- --cores
-- all
-- -np
-workflow_mode: false
-force_conversion: false
-retrofit: false
-help_snakemake: null
-analysis_level: participant
-participant_label: null
-exclude_participant_label: null
-hippunfold_dir: /project/ctb-akhanf/ext-bids/maastricht_dm2/DM2_output/DM2_hippunfold_v1.0.0_run1/
-fmri_clean_strategy: simple
-density: 0p5mm
-hemi:
-- L
-- R
-task: rest
-root: ''
+  ants: '/scratch/myousif9/containers/ants_2.3.4.sif'
+  autotop: '/scratch/myousif9/containers/autotop_deps_nighres.sif'
+  xcpengine: '/project/ctb-akhanf/rhaast/01_Software/singularity/pennbbl_xcpengine_latest.sif'
+
+
+

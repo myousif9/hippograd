@@ -35,7 +35,8 @@ wildcard_constraints:  **snakebids.get_wildcard_constraints(\
 hippunfold_dir = config['hippunfold_dir'].rstrip('/')
 hippunfold_dir = join(hippunfold_dir,'hippunfold') if 'hippunfold' != hippunfold_dir.split('/')[-1] else hippunfold_dir
 
-hippunfold_subjects = [sub for sub in os.listdir(hippunfold_dir) if 'sub-' in sub]
+hippunfold_subjects = [sub.lstrip('sub-') for sub in os.listdir(hippunfold_dir) if 'sub-' in sub]
+
 hippunfold_paths = [glob(join(hippunfold_dir, "sub-{subject}/surf/sub-{subject}_hemi-*_space-T1w_den-0p5mm_label-hipp_midthickness.surf.gii".format(subject=subj, density=config['density'])))[0].replace('hemi-L','hemi-{hemi}').replace('hemi-R','hemi-{hemi}') for subj in hippunfold_subjects]
 
 hippunfold_input_list = [[], []]
@@ -51,14 +52,13 @@ getter = itemgetter(*hippunfold_input_list[0])
 hippunfold_subjects = getter(hippunfold_subjects)
 hippunfold_subj_set = set(hippunfold_subjects)
 
-hippunfold_surf_list = dict(zip(hippunfold_subjects , hippunfold_input_list[1]))
-
-
+hippunfold_surf_dict = dict(zip(hippunfold_subjects , hippunfold_input_list[1]))
 
 # storing input wildcards, input lists and zip lists in more accessible names
 # wildcards
 subj_wildcards = config['subj_wildcards']
-fmri_wildcards = config['input_wildcards']['bold_volume']
+bold_vol_wildcards = config['input_wildcards']['bold_volume']
+bold_surf_wildcards = config['input_wildcards']['bold_surf']
 transform_wildcards = config['input_wildcards']['reverse_transform']
 
 # input lists
@@ -71,62 +71,70 @@ bold_vol_ziplist = config['input_zip_lists']['bold_volume']
 bold_surf_ziplist = config['input_zip_lists']['bold_surf']
 
 # merging all subjects into unified list retaining only subjects with all required input files
-subjects = set()
-subjects.union(set(bold_vol_inlist['subject']))
-subjects.union(set(bold_surf_inlist['subject']))
-subjects.union(set(transform_inlist['subjects']))
-subjects.union(hippunfold_subj_set)
+
+subjects = set(bold_vol_inlist['subject']) & set(bold_surf_inlist['subject']) & set(transform_inlist['subject']) & set(hippunfold_subj_set)
 
 # converting subjects set to list and assigning all input lists similar subject inputs
 subjects = list(subjects)
 
-bold_vol_inlist['subjects'] = subjects
-bold_surf_inlist['subjects'] = subjects
-transform_inlist['subjects'] = subjects
+bold_vol_inlist['subject'] = subjects
+bold_surf_inlist['subject'] = subjects
+transform_inlist['subject'] = subjects
 
 # logic for handling multiple runs, such that the higher number run is always selected
 if 'run' in bold_vol_ziplist.keys():
+    # parsing subjects
     for sub_idx, subj in enumerate(subjects):
-        sub_bool = bold_vol_ziplist['subject'] == subj
+        # finding subject scan name features with boolean
+        sub_bool = [ bold_sub == subj for bold_sub in bold_vol_ziplist['subject'] ] 
         if  sum(sub_bool) > 1 :
-            
             sub_indicies = list(compress(range(len(bold_vol_ziplist['run'])), sub_bool))
-            sub_runs = bold_vol_ziplist['run'][sub_indicies]
-            
-            min_run_idx = compress(sub_indicies, sub_runs == min(sub_runs))[0]
-            
+            sub_runs = [bold_vol_ziplist['run'][s_idx] for s_idx in sub_indicies]
+            min_run_bool = [run == min(sub_runs) for run in sub_runs]
+            min_run_idx = list(compress(sub_indicies, min_run_bool))[0]
+        
             for param in bold_vol_ziplist:
+
+                # bold_vol_ziplist[param] = 
                 del bold_vol_ziplist[param][min_run_idx]
+                # bold_surf_ziplist[param] = 
                 del bold_surf_ziplist[param][min_run_idx]
         else:
             continue
 
+# fmri_surf_dict = dict(zip(subjects,  ))
+print(bold_vol_ziplist['subject'])
+print(bold_vol_ziplist)
+
 
 rule all:
     input:
+        # target for fmriclean rule
         expand(bids(
             root = 'results',
             datatype = 'func',
-            task = '{task}',
+            space = 'MNI152NLin2009cAsym',
             desc = 'cleaned',
             suffix = 'bold.nii.gz',
-            **subj_wildcards),
+            **bold_vol_wildcards),
             zip,
             **bold_vol_ziplist
             ),
 
+        # target for post hippunfold rule
         expand(bids(
-            root = 'results',
-            datatype = 'func',
-            task = '{task}',
-            space = 'fsLR',
-            desc = 'cleaned',
-            suffix = 'bold.dtseries.nii',
+            root = "work",
+            datatype = "anat",
+            hemi = "{hemi}",
+            den = "{density}",
+            suffix = "structure.done",
             **subj_wildcards),
-            zip,
-            **bold_surf_wildcards
+            hemi = config['hemi'],
+            density =  config['density'],
+            **transform_inlist
             ),
 
+        # target for po
         expand(bids(
             root = 'results',
             datatype = 'func',
@@ -135,13 +143,14 @@ rule all:
             space = 'MNI152NLin2009cAsym',
             den = '{density}',
             suffix = 'bold.func.gii',
-            **subj_wildcards),
-            task = config['task'],
+            **transform_wildcards),
             density=config['density'],
             hemi = config['hemi'],
+            task = config['task'],
             **transform_inlist
             ),
 
+        # target for rule post fmriclean
         expand(bids(
             root = 'results',
             datatype = 'func',
@@ -151,26 +160,26 @@ rule all:
             den = '{density}',
             desc = 'aligned',
             suffix = 'gradients.func.gii',
-            **inputs.subj_wildcards),
-            task = config['task'], 
+            **transform_wildcards),
             density=config['density'],
             hemi = config['hemi'],
-            **transform_inlist
+            task = config['task'],
+            **transform_inlist,
             ),
 
-        expand(bids(
-            root = 'work',
-            datatype = 'func',
-            task = '{task}',
-            hemi = '{hemi}',
-            den = '{density}',
-            suffix = 'func.done',
-            **inputs.subj_wildcards),
-            task = config['task'], 
-            density=config['density'],
-            hemi = config['hemi'],
-            **transform_inlist
-            ),
+        # expand(bids(
+        #     root = 'results',
+        #     datatype = 'func',
+        #     den = '91k',
+        #     space = 'fsLR',
+        #     desc = 'cleaned',
+        #     suffix = 'bold.dtseries.nii',
+        #     **bold_surf_wildcards),
+        #     zip,
+        #     **bold_surf_ziplist
+        #     ),
+
+        # outputs for post-hippunfold
 
 include: 'rules/fmriclean.smk'
 

@@ -1,26 +1,27 @@
 rule fmriclean:
     input: 
-        bold_surf = rfmri = lambda wildcards: fmri_surf_dict[wildcards.subject],
-        bold_vol =  rfmri = lambda wildcards: fmri_vol_dict[wildcards.subject]
+        bold_surf = config['input_path']['bold_surf'],
+        bold_vol = config['input_path']['bold_volume']
     params:
         strategy = config['fmri_clean_strategy']
     output: 
         fmri_surf = bids(
             root = 'results',
             datatype = 'func',
-            space = 'fsLR',
             den = '91k',
+            space = 'fsLR',
             desc = 'cleaned',
             suffix = 'bold.dtseries.nii',
-            **subj_wildcards
+            **bold_surf_wildcards
         ),
-        fmri_vol = bids(
+        fmri_volume = bids(
             root = 'results',
             datatype = 'func',
+            space = 'MNI152NLin2009cAsym',
             desc = 'cleaned',
-            suffix = 'bold.dtseries.nii',
-            **subj_wildcards
+            suffix = 'bold.nii.gz',
+            **bold_vol_wildcards
         )
+    group: 'subj'
     script:
         'scripts/fmriclean.py'
- 

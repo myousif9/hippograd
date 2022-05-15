@@ -102,11 +102,6 @@ if 'run' in bold_vol_ziplist.keys():
         else:
             continue
 
-# fmri_surf_dict = dict(zip(subjects,  ))
-print(bold_vol_ziplist['subject'])
-print(bold_vol_ziplist)
-
-
 rule all:
     input:
         # target for fmriclean rule
@@ -121,7 +116,7 @@ rule all:
             **bold_vol_ziplist
             ),
 
-        # target for post hippunfold rule
+        # target for post hippunfold rules
         expand(bids(
             root = "work",
             datatype = "anat",
@@ -134,7 +129,7 @@ rule all:
             **transform_inlist
             ),
 
-        # target for po
+        # target for post fmriclean
         expand(bids(
             root = 'results',
             datatype = 'func',
@@ -150,7 +145,7 @@ rule all:
             **transform_inlist
             ),
 
-        # target for rule post fmriclean
+        # target for post fmriclean
         expand(bids(
             root = 'results',
             datatype = 'func',
@@ -167,20 +162,7 @@ rule all:
             **transform_inlist,
             ),
 
-        # expand(bids(
-        #     root = 'results',
-        #     datatype = 'func',
-        #     den = '91k',
-        #     space = 'fsLR',
-        #     desc = 'cleaned',
-        #     suffix = 'bold.dtseries.nii',
-        #     **bold_surf_wildcards),
-        #     zip,
-        #     **bold_surf_ziplist
-        #     ),
-
-        # outputs for post-hippunfold
-
+# adding rules to pipeline
 include: 'rules/fmriclean.smk'
 
 include: 'rules/post_hippunfold.smk'

@@ -1,7 +1,8 @@
 rule fmriclean:
     input: 
         bold_surf = config['input_path']['bold_surf'],
-        bold_vol = config['input_path']['bold_volume']
+        bold_vol = config['input_path']['bold_volume'],
+        mask = config['input_path']['mask']
     params:
         strategy = config['fmri_clean_strategy']
     output: 

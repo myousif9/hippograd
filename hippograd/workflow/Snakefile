@@ -138,12 +138,27 @@ rule all:
             space = 'MNI152NLin2009cAsym',
             den = '{density}',
             suffix = 'bold.func.gii',
-            **transform_wildcards),
+            **subj_wildcards),
             density=config['density'],
             hemi = config['hemi'],
             task = config['task'],
             **transform_inlist
             ),
+
+        expand(bids(
+            root = 'work',
+            datatype = 'func',
+            task =  '{task}',
+            hemi = '{hemi}',
+            den = '{density}',
+            suffix = 'mapfunc.done',
+            **subj_wildcards),
+            subject = subjects,
+            density=config['density'],
+            hemi = config['hemi'],
+            task = config['task'],
+            ),
+
 
         # target for post fmriclean
         expand(bids(
@@ -155,11 +170,25 @@ rule all:
             den = '{density}',
             desc = 'aligned',
             suffix = 'gradients.func.gii',
-            **transform_wildcards),
+            **subj_wildcards),
             density=config['density'],
             hemi = config['hemi'],
             task = config['task'],
             **transform_inlist,
+            ),
+
+        expand(bids(
+            root = 'work',
+            datatype = 'func',
+            task =  '{task}',
+            hemi = '{hemi}',
+            den = '{density}',
+            suffix = 'func.done',
+            **subj_wildcards),
+            subject = subjects,
+            density=config['density'],
+            hemi = config['hemi'],
+            task = config['task'],
             ),
 
 # adding rules to pipeline

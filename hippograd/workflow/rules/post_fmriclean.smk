@@ -1,10 +1,32 @@
+bold_surf_clean = bids(
+    root = 'results',
+    datatype = 'func',
+    den = '91k',
+    space = 'fsLR',
+    desc = 'cleaned',
+    suffix = 'bold.dtseries.nii',
+    **bold_surf_wildcards
+)
+
+bold_vol_clean = bids(
+    root = 'results',
+    datatype = 'func',
+    space = 'MNI152NLin2009cAsym',
+    desc = 'cleaned',
+    suffix = 'bold.nii.gz',
+    **bold_vol_wildcards
+)
+
+fmriclean_vol_dict = dict(zip(bold_vol_ziplist['subject'],  expand(bold_vol_clean,zip,**bold_vol_ziplist)))
+fmriclean_surf_dict = dict(zip(bold_surf_ziplist['subject'], expand(bold_surf_clean,zip,**bold_surf_ziplist)))
+
 rule map_rfmri_hippunfold_surface:
     input:
         check_struct = rules.set_surf_structure.output.check,
         surf = rules.csv2gifti.output.surf,
-        fmri = expand(rules.fmriclean.output.fmri_volume, zip, **bold_vol_ziplist)
+        fmri_vol = lambda wildcards: fmriclean_vol_dict[wildcards.subject]
     output:
-        rfmri = bids(
+        fmri_surf = bids(
             root = 'results',
             datatype = 'func',
             task =  '{task}',
@@ -13,7 +35,7 @@ rule map_rfmri_hippunfold_surface:
             den = '{density}',
             suffix = 'bold.func.gii',
             **subj_wildcards
-            )
+            ),
     container: config['singularity']['autotop']
     group: 'subj'
     threads: 8
@@ -23,16 +45,38 @@ rule map_rfmri_hippunfold_surface:
     log: bids(root = 'logs',**subj_wildcards, task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'map-rfmri-hippunfold-surface.txt')
     shell:
         '''
-        wb_command -volume-to-surface-mapping {input.fmri} {input.surf} {output.rfmri} -trilinear
+        wb_command -volume-to-surface-mapping {input.fmri_vol} {input.surf} {output.fmri_surf} -trilinear
+        '''
+rule set_funcmap_structure:
+    input:
+        fmri_surf = rules.map_rfmri_hippunfold_surface.output.fmri_surf,
+    params:
+        structure = 'CORTEX_LEFT' if '{hemi}' == 'L' else 'CORTEX_RIGHT'
+    output:
+        check = bids(
+            root = 'work',
+            datatype = 'func',
+            task =  '{task}',
+            hemi = '{hemi}',
+            den = '{density}',
+            suffix = 'mapfunc.done',
+            **subj_wildcards
+            ),
+    container: config['singularity']['autotop']
+    group: 'subj'
+    log: bids(root = 'logs',**subj_wildcards, task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'set-func-structure.txt')
+    shell: 
+        '''
+        wb_command -set-structure {input.fmri_surf} {params.structure} -surface-type ANATOMICAL
+        touch {output.check}
         '''
 
 rule calculate_affinity_matrix:
     input:
-        rfmri_hipp = rules.map_rfmri_hippunfold_surface.output.rfmri,
-        rfmri_ctx = expand(rules.fmriclean.output.fmri_surf,zip, **bold_surf_ziplist)
+        rfmri_hipp = rules.map_rfmri_hippunfold_surface.output.fmri_surf,
+        rfmri_ctx = lambda wildcards: fmriclean_surf_dict[wildcards.subject]
     params:
         n_gradients = config['n_gradients'],
-        # rfmri_ctx = lambda wildcards: join('results/xcpengine/', fmri_path_cohort( input.fmri_cohort_path )[1])
     output:
         correlation_matrix = bids(
             root = 'results',
@@ -51,9 +95,9 @@ rule calculate_affinity_matrix:
             hemi = '{hemi}',
             space = 'MNI152NLin2009cAsym',
             den = '{density}',
-            suffix = 'affinitymatrix.npy',
+            suffix = "affinitymatrix.npy",
             **subj_wildcards
-            )
+            ),
     threads: 8
     resources:
         mem_mb = 16000,
@@ -62,29 +106,6 @@ rule calculate_affinity_matrix:
     log: bids(root = 'logs',**subj_wildcards, task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'calculate-affinity-matrix.txt')
     script: '../scripts/calculate_affinity_matrix.py'
 
-# compile affinity matrices that exist and 
-
-# affinity_path =bids(
-#     root = 'results',
-#     datatype = 'func',
-#     task = '{task}',
-#     hemi = '{hemi}',
-#     space = 'MNI152NLin2009cAsym',
-#     den = '{density}',
-#     suffix = 'affinitymatrix.npy',
-#     **subj_wildcards)
-
-# affinity_mat_subjects = {}
-
-# for idx, subj in enumerate(fmri_input_list['subject']):
-#     for hemi in config['hemi']:
-#         if os.path.exists(affinity_path.format(subject=subj, task=config['task'],hemi=hemi, density=config['density'])):
-#             affinity_exist_subjects.add(subj)
-#         else:
-#             affinity_exist_subjects.discard(subj)
-
-# affinity_mat_subjects = list(affinity_mat_subjects)
-            
 rule calculate_average_gradients:
     input:
         affinity_matrix = expand(bids(
@@ -158,7 +179,7 @@ rule calculate_aligned_gradients:
     log: bids(root = 'logs',**subj_wildcards, task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'calculate-aligned-gradients.txt')
     script: '../scripts/calculate_aligned_gradients.py'
 
-rule set_func_structure:
+rule set_grad_structure:
     input:
         gradient_maps = rules.calculate_aligned_gradients.output.gradient_maps,
     params:

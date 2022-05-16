@@ -35,5 +35,5 @@ if __name__ == '__main__':
     vol_clean = clean_fmri(snakemake.input.bold_vol, mask_path=snakemake.input.mask, clean_strategy=snakemake.params.strategy)
     vol_clean.to_filename(snakemake.output.fmri_volume)
 
-    surf_clean = clean_fmri(snakemake.input.bold_surf, clean_strategy=snakemake.parmas.strategy)
+    surf_clean = clean_fmri(snakemake.input.bold_surf, clean_strategy=snakemake.params.strategy)
     surf_clean.to_filename(snakemake.output.fmri_surf)

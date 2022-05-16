@@ -25,4 +25,4 @@ rule fmriclean:
         )
     group: 'subj'
     script:
-        'scripts/fmriclean.py'
+        '../scripts/fmriclean.py'

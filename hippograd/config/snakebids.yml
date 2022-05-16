@@ -2,7 +2,7 @@ bids_dir: '/path/to/bids_dir'
 output_dir: '/path/to/output_dir'
 
 #enable printing debug statements during parsing -- disable if generating dag visualization
-debug: True
+debug: False
 
 derivatives: True #will search in bids/derivatives if True; can also be path(s) to derivatives datasets
 
@@ -174,11 +174,11 @@ parse_args:
     help: Passing reference gradient for allignment of subject gradients.
     required: False
 
-  --run:
-    help: Selecting either a specific run number or selecting the 'max' or 'min' run.
-    default: max
-    nargs: 1
-    required: False
+  # --run:
+  #   help: Selecting either a specific run number or selecting the 'max' or 'min' run.
+  #   default: max
+  #   nargs: 1
+  #   required: False
     
 #--- workflow specific configuration -- below is just an example:
 

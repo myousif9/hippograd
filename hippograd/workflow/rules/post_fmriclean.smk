@@ -45,8 +45,9 @@ rule map_rfmri_hippunfold_surface:
     log: bids(root = 'logs',**subj_wildcards, task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'map-rfmri-hippunfold-surface.txt')
     shell:
         '''
-        wb_command -volume-to-surface-mapping {input.fmri_vol} {input.surf} {output.fmri_surf} -trilinear
+        wb_command -volume-to-surface-mapping {input.fmri_vol} {input.surf} {output.fmri_surf} -trilinear &> {log}
         '''
+
 rule set_funcmap_structure:
     input:
         fmri_surf = rules.map_rfmri_hippunfold_surface.output.fmri_surf,
@@ -67,7 +68,7 @@ rule set_funcmap_structure:
     log: bids(root = 'logs',**subj_wildcards, task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'set-func-structure.txt')
     shell: 
         '''
-        wb_command -set-structure {input.fmri_surf} {params.structure} -surface-type ANATOMICAL
+        wb_command -set-structure {input.fmri_surf} {params.structure} -surface-type ANATOMICAL &> {log}
         touch {output.check}
         '''
 
@@ -199,7 +200,7 @@ rule set_grad_structure:
     log: bids(root = 'logs',**subj_wildcards, task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'set-func-structure.txt')
     shell: 
         '''
-        wb_command -set-structure {input.gradient_maps} {params.structure} -surface-type ANATOMICAL
+        wb_command -set-structure {input.gradient_maps} {params.structure} -surface-type ANATOMICAL &> {log}
         touch {output.check}
         '''
 

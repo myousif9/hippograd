@@ -1,0 +1,201 @@
+Config file config/snakebids.yml is extended by additional config specified via the command line.
+/scratch/myousif9/Software/hippograd_venv_3.10.2/lib/python3.10/site-packages/bids/layout/validation.py:151: UserWarning: The PipelineDescription field was superseded by GeneratedBy in BIDS 1.4.0. You can use ``pybids upgrade`` to update your derivative dataset.
+  warnings.warn("The PipelineDescription field was superseded "
+Building DAG of jobs...
+Using shell: /cvmfs/soft.computecanada.ca/gentoo/2020/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+all                                 1              1              1
+apply_transform                     4              1              1
+calculate_affinity_matrix           4              4              4
+calculate_aligned_gradients         4              1              1
+calculate_average_gradients         2              1              1
+correct_nan_vertices                4              1              1
+csv2gifti                           4              1              1
+fmriclean                           2              1              1
+gifti2csv                           4              1              1
+map_rfmri_hippunfold_surface        4              4              4
+set_funcmap_structure               4              1              1
+set_grad_structure                  4              1              1
+set_surf_structure                  4              1              1
+total                              45              1              4
+
+Select jobs to execute...
+
+[Tue May 17 15:28:29 2022]
+rule correct_nan_vertices:
+    input: /project/ctb-akhanf/ext-bids/maastricht_dm2/DM2_output/DM2_hippunfold_v1.0.0_run1/hippunfold/sub-S01/surf/sub-S01_hemi-R_space-T1w_den-0p5mm_label-hipp_midthickness.surf.gii
+    output: results/sub-S01/anat/sub-S01_hemi-R_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surf.gii
+    log: logs/sub-S01/sub-S01_hemi-R_den-0p5mm_correct_nan_verticies.txt
+    jobid: 22
+    wildcards: subject=S01, hemi=R, density=0p5mm
+    resources: tmpdir=/tmp
+
+[Tue May 17 15:28:29 2022]
+rule fmriclean:
+    input: /project/6050199/akhanf/ext-bids/maastricht_dm2/DM2_dataset/derivatives/fmriprep/sub-S01/func/sub-S01_task-rest_dir-AP_run-1_space-fsLR_den-91k_bold.dtseries.nii, /project/6050199/akhanf/ext-bids/maastricht_dm2/DM2_dataset/derivatives/fmriprep/sub-S01/func/sub-S01_task-rest_dir-AP_run-1_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz, /project/6050199/akhanf/ext-bids/maastricht_dm2/DM2_dataset/derivatives/fmriprep/sub-S01/func/sub-S01_task-rest_dir-AP_run-1_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz
+    output: results/sub-S01/func/sub-S01_task-rest_run-1_space-fsLR_den-91k_desc-cleaned_bold.dtseries.nii, results/sub-S01/func/sub-S01_task-rest_run-1_space-MNI152NLin2009cAsym_desc-cleaned_bold.nii.gz
+    jobid: 1
+    wildcards: subject=S01, task=rest, run=1
+    resources: tmpdir=/tmp
+
+[Tue May 17 15:28:29 2022]
+rule fmriclean:
+    input: /project/6050199/akhanf/ext-bids/maastricht_dm2/DM2_dataset/derivatives/fmriprep/sub-S02/func/sub-S02_task-rest_dir-AP_run-2_space-fsLR_den-91k_bold.dtseries.nii, /project/6050199/akhanf/ext-bids/maastricht_dm2/DM2_dataset/derivatives/fmriprep/sub-S02/func/sub-S02_task-rest_dir-AP_run-2_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz, /project/6050199/akhanf/ext-bids/maastricht_dm2/DM2_dataset/derivatives/fmriprep/sub-S02/func/sub-S02_task-rest_dir-AP_run-2_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz
+    output: results/sub-S02/func/sub-S02_task-rest_run-2_space-fsLR_den-91k_desc-cleaned_bold.dtseries.nii, results/sub-S02/func/sub-S02_task-rest_run-2_space-MNI152NLin2009cAsym_desc-cleaned_bold.nii.gz
+    jobid: 2
+    wildcards: subject=S02, task=rest, run=2
+    resources: tmpdir=/tmp
+
+[Tue May 17 15:28:29 2022]
+rule correct_nan_vertices:
+    input: /project/ctb-akhanf/ext-bids/maastricht_dm2/DM2_output/DM2_hippunfold_v1.0.0_run1/hippunfold/sub-S01/surf/sub-S01_hemi-L_space-T1w_den-0p5mm_label-hipp_midthickness.surf.gii
+    output: results/sub-S01/anat/sub-S01_hemi-L_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surf.gii
+    log: logs/sub-S01/sub-S01_hemi-L_den-0p5mm_correct_nan_verticies.txt
+    jobid: 12
+    wildcards: subject=S01, hemi=L, density=0p5mm
+    resources: tmpdir=/tmp
+
+[Tue May 17 15:28:34 2022]
+Finished job 22.
+1 of 45 steps (2%) done
+Select jobs to execute...
+
+[Tue May 17 15:28:34 2022]
+rule correct_nan_vertices:
+    input: /project/ctb-akhanf/ext-bids/maastricht_dm2/DM2_output/DM2_hippunfold_v1.0.0_run1/hippunfold/sub-S02/surf/sub-S02_hemi-R_space-T1w_den-0p5mm_label-hipp_midthickness.surf.gii
+    output: results/sub-S02/anat/sub-S02_hemi-R_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surf.gii
+    log: logs/sub-S02/sub-S02_hemi-R_den-0p5mm_correct_nan_verticies.txt
+    jobid: 17
+    wildcards: subject=S02, hemi=R, density=0p5mm
+    resources: tmpdir=/tmp
+
+[Tue May 17 15:28:34 2022]
+Finished job 12.
+2 of 45 steps (4%) done
+Select jobs to execute...
+
+[Tue May 17 15:28:34 2022]
+rule gifti2csv:
+    input: results/sub-S01/anat/sub-S01_hemi-L_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surf.gii
+    output: work/sub-S01/anat/sub-S01_hemi-L_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surfpoints.csv
+    log: logs/sub-S01/sub-S01_hemi-L_den-0p5mm_gifti2csv.txt
+    jobid: 11
+    wildcards: subject=S01, hemi=L, density=0p5mm
+    resources: tmpdir=/tmp
+
+[Tue May 17 15:28:35 2022]
+Finished job 17.
+3 of 45 steps (7%) done
+Select jobs to execute...
+
+[Tue May 17 15:28:35 2022]
+rule gifti2csv:
+    input: results/sub-S01/anat/sub-S01_hemi-R_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surf.gii
+    output: work/sub-S01/anat/sub-S01_hemi-R_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surfpoints.csv
+    log: logs/sub-S01/sub-S01_hemi-R_den-0p5mm_gifti2csv.txt
+    jobid: 21
+    wildcards: subject=S01, hemi=R, density=0p5mm
+    resources: tmpdir=/tmp
+
+/scratch/myousif9/Software/hippograd_venv_3.10.2/lib/python3.10/site-packages/bids/layout/validation.py:151: UserWarning: The PipelineDescription field was superseded by GeneratedBy in BIDS 1.4.0. You can use ``pybids upgrade`` to update your derivative dataset.
+  warnings.warn("The PipelineDescription field was superseded "
+/scratch/myousif9/Software/hippograd_venv_3.10.2/lib/python3.10/site-packages/bids/layout/validation.py:151: UserWarning: The PipelineDescription field was superseded by GeneratedBy in BIDS 1.4.0. You can use ``pybids upgrade`` to update your derivative dataset.
+  warnings.warn("The PipelineDescription field was superseded "
+[Tue May 17 15:29:13 2022]
+Finished job 11.
+4 of 45 steps (9%) done
+Select jobs to execute...
+
+[Tue May 17 15:29:13 2022]
+rule apply_transform:
+    input: /project/6050199/akhanf/ext-bids/maastricht_dm2/DM2_dataset/derivatives/fmriprep/sub-S01/anat/sub-S01_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5, work/sub-S01/anat/sub-S01_hemi-L_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surfpoints.csv
+    output: work/sub-S01/anat/sub-S01_hemi-L_space-MNI152NLin2009cAsym_den-0p5mm_desc-nancorrect_midthickness.surfpoints.csv
+    log: logs/sub-S01/sub-S01_hemi-L_den-0p5mm_apply_transform.txt
+    jobid: 10
+    wildcards: subject=S01, hemi=L, density=0p5mm
+    resources: tmpdir=/tmp
+
+Activating singularity image /scratch/myousif9/containers/ants_2.3.4.sif
+[Tue May 17 15:29:14 2022]
+Finished job 21.
+5 of 45 steps (11%) done
+Select jobs to execute...
+
+[Tue May 17 15:29:14 2022]
+rule apply_transform:
+    input: /project/6050199/akhanf/ext-bids/maastricht_dm2/DM2_dataset/derivatives/fmriprep/sub-S01/anat/sub-S01_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5, work/sub-S01/anat/sub-S01_hemi-R_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surfpoints.csv
+    output: work/sub-S01/anat/sub-S01_hemi-R_space-MNI152NLin2009cAsym_den-0p5mm_desc-nancorrect_midthickness.surfpoints.csv
+    log: logs/sub-S01/sub-S01_hemi-R_den-0p5mm_apply_transform.txt
+    jobid: 20
+    wildcards: subject=S01, hemi=R, density=0p5mm
+    resources: tmpdir=/tmp
+
+Activating singularity image /scratch/myousif9/containers/ants_2.3.4.sif
+[Tue May 17 15:29:16 2022]
+Finished job 20.
+6 of 45 steps (13%) done
+Select jobs to execute...
+
+[Tue May 17 15:29:16 2022]
+rule csv2gifti:
+    input: work/sub-S01/anat/sub-S01_hemi-R_space-MNI152NLin2009cAsym_den-0p5mm_desc-nancorrect_midthickness.surfpoints.csv, results/sub-S01/anat/sub-S01_hemi-R_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surf.gii
+    output: results/sub-S01/anat/sub-S01_hemi-R_space-MNI152NLin2009cAsym_den-0p5mm_desc-nancorrect_midthickness.surf.gii
+    log: logs/sub-S01/sub-S01_hemi-R_den-0p5mm_csv2gifti.txt
+    jobid: 19
+    wildcards: subject=S01, hemi=R, density=0p5mm
+    resources: tmpdir=/tmp
+
+[Tue May 17 15:29:16 2022]
+Finished job 10.
+7 of 45 steps (16%) done
+Select jobs to execute...
+
+[Tue May 17 15:29:16 2022]
+rule csv2gifti:
+    input: work/sub-S01/anat/sub-S01_hemi-L_space-MNI152NLin2009cAsym_den-0p5mm_desc-nancorrect_midthickness.surfpoints.csv, results/sub-S01/anat/sub-S01_hemi-L_space-T1w_den-0p5mm_desc-nancorrect_midthickness.surf.gii
+    output: results/sub-S01/anat/sub-S01_hemi-L_space-MNI152NLin2009cAsym_den-0p5mm_desc-nancorrect_midthickness.surf.gii
+    log: logs/sub-S01/sub-S01_hemi-L_den-0p5mm_csv2gifti.txt
+    jobid: 9
+    wildcards: subject=S01, hemi=L, density=0p5mm
+    resources: tmpdir=/tmp
+
+/cvmfs/soft.computecanada.ca/gentoo/2020/bin/bash: line 1: 18559 Killed                  /scratch/myousif9/Software/hippograd_venv_3.10.2/bin/python /scratch/myousif9/DM2_hippograd_test_kslurm/.snakemake/scripts/tmp9je126m_.fmriclean.py
+[Tue May 17 15:29:34 2022]
+Error in rule fmriclean:
+    jobid: 1
+    output: results/sub-S01/func/sub-S01_task-rest_run-1_space-fsLR_den-91k_desc-cleaned_bold.dtseries.nii, results/sub-S01/func/sub-S01_task-rest_run-1_space-MNI152NLin2009cAsym_desc-cleaned_bold.nii.gz
+
+RuleException:
+CalledProcessError in line 28 of /scratch/myousif9/Software/hippograd/hippograd/workflow/rules/fmriclean.smk:
+Command 'set -euo pipefail;  /scratch/myousif9/Software/hippograd_venv_3.10.2/bin/python /scratch/myousif9/DM2_hippograd_test_kslurm/.snakemake/scripts/tmp9je126m_.fmriclean.py' returned non-zero exit status 137.
+  File "/scratch/myousif9/Software/hippograd/hippograd/workflow/rules/fmriclean.smk", line 28, in __rule_fmriclean
+  File "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Core/python/3.10.2/lib/python3.10/concurrent/futures/thread.py", line 58, in run
+/scratch/myousif9/Software/hippograd_venv_3.10.2/lib/python3.10/site-packages/bids/layout/validation.py:151: UserWarning: The PipelineDescription field was superseded by GeneratedBy in BIDS 1.4.0. You can use ``pybids upgrade`` to update your derivative dataset.
+  warnings.warn("The PipelineDescription field was superseded "
+/scratch/myousif9/Software/hippograd_venv_3.10.2/lib/python3.10/site-packages/bids/layout/validation.py:151: UserWarning: The PipelineDescription field was superseded by GeneratedBy in BIDS 1.4.0. You can use ``pybids upgrade`` to update your derivative dataset.
+  warnings.warn("The PipelineDescription field was superseded "
+/cvmfs/soft.computecanada.ca/gentoo/2020/bin/bash: line 1: 18558 Killed                  /scratch/myousif9/Software/hippograd_venv_3.10.2/bin/python /scratch/myousif9/DM2_hippograd_test_kslurm/.snakemake/scripts/tmpdotwm82k.fmriclean.py
+[Tue May 17 15:29:41 2022]
+Error in rule fmriclean:
+    jobid: 2
+    output: results/sub-S02/func/sub-S02_task-rest_run-2_space-fsLR_den-91k_desc-cleaned_bold.dtseries.nii, results/sub-S02/func/sub-S02_task-rest_run-2_space-MNI152NLin2009cAsym_desc-cleaned_bold.nii.gz
+
+RuleException:
+CalledProcessError in line 28 of /scratch/myousif9/Software/hippograd/hippograd/workflow/rules/fmriclean.smk:
+Command 'set -euo pipefail;  /scratch/myousif9/Software/hippograd_venv_3.10.2/bin/python /scratch/myousif9/DM2_hippograd_test_kslurm/.snakemake/scripts/tmpdotwm82k.fmriclean.py' returned non-zero exit status 137.
+  File "/scratch/myousif9/Software/hippograd/hippograd/workflow/rules/fmriclean.smk", line 28, in __rule_fmriclean
+  File "/cvmfs/soft.computecanada.ca/easybuild/software/2020/avx2/Core/python/3.10.2/lib/python3.10/concurrent/futures/thread.py", line 58, in run
+[Tue May 17 15:30:21 2022]
+Finished job 19.
+8 of 45 steps (18%) done
+[Tue May 17 15:30:21 2022]
+Finished job 9.
+9 of 45 steps (20%) done
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2022-05-17T152719.021789.snakemake.log
+slurmstepd: error: Detected 2 oom-kill event(s) in StepId=60968136.batch cgroup. Some of your processes may have been killed by the cgroup out-of-memory handler.

@@ -57,7 +57,7 @@ rule apply_transform:
     log: bids(root = 'logs',**subj_wildcards, hemi = '{hemi}', den = '{density}', suffix = 'apply_transform.txt')
     shell:
         ''' 
-        antsApplyTransformsToPoints -d 3 -i {input.surf} -o {output.surf} -t {input.rvr_transform}
+        antsApplyTransformsToPoints -d 3 -i {input.surf} -o {output.surf} -t {input.rvr_transform} &> {log}
         '''
 
 rule csv2gifti:
@@ -99,7 +99,7 @@ rule set_surf_structure:
     log: bids(root = 'logs',**subj_wildcards, hemi = '{hemi}', den = '{density}', suffix = 'set_surf_structure.txt')
     shell: 
         '''
-        wb_command -set-structure {input.surf} {params.structure} -surface-type ANATOMICAL
+        wb_command -set-structure {input.surf} {params.structure} -surface-type ANATOMICAL &> {log}
         touch {output.check}
         '''
 

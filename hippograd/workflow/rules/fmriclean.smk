@@ -26,3 +26,27 @@ rule fmriclean:
     group: 'subj'
     script:
         '../scripts/fmriclean.py'
+
+# if config['atlas'] == None:
+#     rule reduce_label:
+#         input:
+#             surf = rules.fmriclean.fmri_surf 
+#         params:
+#             template = 'fsLR32k',
+#             atlas = confg['atlas'],
+#             n_regions = config['n_regions'],
+#             atlas_kwargs = config = config['atlas_kwargs']
+#         output:
+#             surf = bold(
+#                 root = 'results',
+#                 datatype = 'func',
+#                 den = '91k',
+#                 space = 'fsLR'
+#                 desc = config['atlas']+config['n_regions'],
+#                 suffix = 'bold_.dtseries.nii'
+#                 **bold_surf_wildcards
+#             )
+#         run: 
+
+
+## Add rule for masking regions

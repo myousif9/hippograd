@@ -92,12 +92,9 @@ if 'run' in bold_vol_ziplist.keys():
             sub_runs = [bold_vol_ziplist['run'][s_idx] for s_idx in sub_indicies]
             min_run_bool = [run == min(sub_runs) for run in sub_runs]
             min_run_idx = list(compress(sub_indicies, min_run_bool))[0]
-        
-            for param in bold_vol_ziplist:
 
-                # bold_vol_ziplist[param] = 
+            for param in bold_vol_ziplist:
                 del bold_vol_ziplist[param][min_run_idx]
-                # bold_surf_ziplist[param] = 
                 del bold_surf_ziplist[param][min_run_idx]
         else:
             continue

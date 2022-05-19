@@ -46,6 +46,7 @@ pybids_inputs:
       scope: 'derivatives'
       task: 'rest'
       space: 'MNI152NLin2009cAsym'
+      desc: 'preproc'
       invalid_filters: 'allow'
     wildcards:
         - subject

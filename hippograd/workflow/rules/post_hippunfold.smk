@@ -1,4 +1,4 @@
-from scripts.utilities import gifti2csv, csv2gifti, fmri_path_cohort
+from scripts.utilities import gifti2csv, csv2gifti
 
 rule correct_nan_vertices:
     input: 
@@ -33,7 +33,6 @@ rule gifti2csv:
             **subj_wildcards
         ),
     group: 'subj'
-    log: bids(root = 'logs',**subj_wildcards, hemi = '{hemi}', den = '{density}', suffix = 'gifti2csv.txt')
     run:
         gifti2csv(input.surf,output.surf)
 
@@ -76,7 +75,6 @@ rule csv2gifti:
             **subj_wildcards
         ),
     group: 'subj'
-    log: bids(root = 'logs',**subj_wildcards, hemi = '{hemi}', den = '{density}', suffix = 'csv2gifti.txt')
     run:
         csv2gifti(input.surf_csv, input.surf_gii, output.surf)
 

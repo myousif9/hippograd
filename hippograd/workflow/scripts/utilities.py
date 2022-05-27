@@ -111,7 +111,7 @@ def surf_data_from_cifti(data, surf_name):
     """
     axis = data.header.get_axis(1)
     data = data.get_fdata()
-    surf_name = 'CIFTI_STRUCTURE_'+surf_name.strip()
+    surf_name = 'CIFTI_STRUCTURE_'+surf_name.strip().upper()
     assert isinstance(axis, nib.cifti2.BrainModelAxis)
     for name, data_indices, model in axis.iter_structures():  # Iterates over volumetric and surface structures
         if name == surf_name:                                 # Just looking for a surface

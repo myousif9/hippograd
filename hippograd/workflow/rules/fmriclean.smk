@@ -24,6 +24,7 @@ rule fmriclean:
             **bold_vol_wildcards
         )
     group: 'subj'
+    log: bids(root = 'logs',**bold_surf_wildcards, suffix = 'fmriclean.txt')
     script:
         '../scripts/fmriclean.py'
 

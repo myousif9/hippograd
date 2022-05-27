@@ -132,6 +132,10 @@ parse_args:
   --hippunfold_dir:
     help: The directory with completed hippunfold output.
     required: True
+  
+  # --fmriprep_dir:
+  #   help: Specifying the path to the fmriprep_directory.
+  #   required: False
 
   --fmri_clean_strategy:
     help: 'Selecting from predefined fmri cleaning strategies'
@@ -164,7 +168,16 @@ parse_args:
       - R
     nargs: '+'
     required: False
-  
+
+  # --hemi_cortex:
+  #   help:
+  #   default: both
+  #   choices:
+  #     - ipsilateral
+  #     - contralateral
+  #     - both  
+  #   required: False
+
   --task:
     help: Define task event for fMRI acquision.
     default: rest
@@ -175,9 +188,41 @@ parse_args:
     help: Passing reference gradient for allignment of subject gradients.
     required: False
 
+  
   # --run:
   #   help: Selecting either a specific run number or selecting the 'max' or 'min' run.
   #   default: max
+  #   nargs: 1
+  #   required: False
+
+
+  # --affinity_kernel:
+  #   help: Specifying the method to use to compute the affinity matrix
+  #   default: cosine
+  #   choices:
+  #     - pearson
+  #     - spearman
+  #     - cosine
+  #     - normalized_angle
+  #   nargs: 1
+  #   required: False
+
+  # --align_method:
+  #   help: Specifying gradient allignment method to be used
+  #   default: procrustes
+  #   choices:
+  #     - procrustes
+  #     - joint
+  #     - none
+  #   required: False 
+  
+  # --dim_reduction_method:
+  #   help: Specifying the dimensionality reduction method to be used to compute gradients
+  #   default: DiffusionMaps
+  #   choices:
+  #     - DiffusionMaps
+  #     - LaplacianEigenMaps
+  #     - PCAMaps
   #   nargs: 1
   #   required: False
     
@@ -189,9 +234,11 @@ n_gradients: 10
 singularity:
   ants: '/scratch/myousif9/containers/ants_2.3.4.sif'
   autotop: '/scratch/myousif9/containers/autotop_deps_v0.4.1.sif'
-
   # ants: docker://kaczmarj/ants:2.3.4
   # autotop: docker://khanlab/autotop_deps:v0.4.1
+# atlas:
+#   schaefer400: 'resources/schaefer400.npy'
+
 
 
 

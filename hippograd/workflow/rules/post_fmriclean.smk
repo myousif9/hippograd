@@ -1,3 +1,6 @@
+from scripts.utilities import fetch_atlas_path
+import os
+
 bold_surf_clean = bids(
     root = 'results',
     datatype = 'func',
@@ -78,6 +81,7 @@ rule calculate_affinity_matrix:
         rfmri_ctx = lambda wildcards: fmriclean_surf_dict[wildcards.subject]
     params:
         n_gradients = config['n_gradients'],
+        parcellation = fetch_atlas_path(config['cortex_parcellation'],config['n_parcels'],os.path.join(workflow.basedir,'..','resources','parcellations')
     output:
         correlation_matrix = bids(
             root = 'results',
@@ -142,7 +146,7 @@ rule calculate_average_gradients:
             suffix = 'affinitymatrix.npy'
             ),
     params:
-        n_gradients = config['n_gradients']
+        n_gradients = config['n_gradients'],
     group: 'calc_gradients'
     log: bids(root = 'logs', sub = 'avg', task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'calculate-average-gradients.txt')
     script: '../scripts/calculate_average_gradients.py'

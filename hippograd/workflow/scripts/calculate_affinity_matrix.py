@@ -105,7 +105,8 @@ if __name__ == '__main__':
   rfmri_ctx_file  = snakemake.input.rfmri_ctx
   affinity_matrix_output = snakemake.output.affinity_matrix
   correlation_matrix_output = snakemake.output.correlation_matrix
+  atlas_path = snakemake.params.parcellation
   logfile = snakemake.log[0]
 
 
-  compute_affinity_matrix(rfmri_hipp_file, rfmri_ctx_file, affinity_matrix_output, correlation_matrix_output,logfile=logfile)
+  compute_affinity_matrix(rfmri_hipp_file, rfmri_ctx_file, affinity_matrix_output, correlation_matrix_output, atlas=atlas_path, logfile=logfile)

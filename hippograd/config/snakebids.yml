@@ -184,16 +184,47 @@ parse_args:
     nargs: 1
     required: False
   
-  --reference_gradient:
-    help: Passing reference gradient for allignment of subject gradients.
-    required: False
-
-  
   # --run:
   #   help: Selecting either a specific run number or selecting the 'max' or 'min' run.
   #   default: max
   #   nargs: 1
   #   required: False
+
+  
+  --reference_gradient:
+    help: Passing reference gradient for allignment of subject gradients.
+    required: False
+
+  --cortex_parcellation:
+    help: Select parcellation method for 
+    default: schaefer
+    choices:
+      - schaefer
+      - glasser
+      - cammoun
+      - yeo
+
+  --n_parcels:
+    help: Select the number of parcels
+    default: 400
+    choices:
+      - 100
+      - 200
+      - 300
+      - 400
+      - 500
+      - 600
+      - 700
+      - 800
+      - 1000
+      - 360
+      - 33
+      - 60
+      - 125
+      - 250
+      - 7
+      - 17
+
 
 
   # --affinity_kernel:

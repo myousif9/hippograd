@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import os
 
+from hippograd.workflow.scripts.fix_nan_vertices import F
+
 def gifti2csv(gii_file, out_file, itk_lps = True):
         gii = nib.load(gii_file)
         data = gii.get_arrays_from_intent('NIFTI_INTENT_POINTSET')[0].data
@@ -122,3 +124,32 @@ def surf_data_from_cifti(data, surf_name):
             return surf_data
     raise ValueError(f"No structure named {surf_name}")
 
+
+def fetch_atlas_path(atlas,n_parc,parc_dir):
+    """Fetching path the atlas. All parcellation where downloaded via brainstat package (https://github.com/MICA-MNI/BrainStat).
+
+    Args:
+        atlas (string): Parcellation selection eg. schaefer cammoun, glasser, yeo
+        n_parc (integer): Number of parcels.
+        parc_dir (string): Path to directory where parcellations are stored.
+
+    Raises:
+        ValueError: Invalid atlas.
+        ValueError: Invalid number of parcels.
+        ValueError: Path to parcellation directory does not exist.
+
+    Returns:
+        string: Path to selected parcelation.
+    """
+
+    atlas_dict = {'schaefer':[100, 200, 300, 400, 500, 600, 800, 1000],'cammoun':[33, 60, 125, 250, 500],'glasser':[360],'yeo':[7,17]}
+    
+    if atlas not in atlas_dict.keys():
+        raise ValueError( f'{atlas} is not a valid atlas, valid atlases are:'+', '.join(atlas_dict)+'.')
+    elif n_parc not in atlas_dict[atlas]:
+        n_parc_str = str(n_parc)
+        raise ValueError(f'{n_parc_str} is not a valid number of parcels for the {atlas} atlas.')
+    elif os.path.exists(parc_dir) == False:
+        raise ValueError(f'{parc_dir} path does not exist.')
+    else:
+        return os.path.join(parc_dir,atlas+str(n_parc)+'.npy')

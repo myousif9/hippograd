@@ -142,21 +142,6 @@ rule all:
             **transform_inlist
             ),
 
-        expand(bids(
-            root = 'work',
-            datatype = 'func',
-            task =  '{task}',
-            hemi = '{hemi}',
-            den = '{density}',
-            suffix = 'mapfunc.done',
-            **subj_wildcards),
-            subject = subjects,
-            density=config['density'],
-            hemi = config['hemi'],
-            task = config['task'],
-            ),
-
-
         # target for post fmriclean
         expand(bids(
             root = 'results',
@@ -173,19 +158,19 @@ rule all:
             task = config['task'],
             **transform_inlist,
             ),
-
+        
         expand(bids(
             root = 'work',
             datatype = 'func',
-            task =  '{task}',
+            task = '{task}',
             hemi = '{hemi}',
             den = '{density}',
-            suffix = 'func.done',
+            suffix = 'calc_grad.done',
             **subj_wildcards),
-            subject = subjects,
-            density=config['density'],
             hemi = config['hemi'],
+            density =  config['density'],
             task = config['task'],
+            **transform_inlist
             ),
 
 # adding rules to pipeline

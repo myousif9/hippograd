@@ -2,8 +2,11 @@ import nibabel as nib
 import numpy as np
 import pandas as pd
 import os
+import copy
+from scipy.interpolate import griddata
+from yaml import load
 
-from hippograd.workflow.scripts.fix_nan_vertices import F
+
 
 def gifti2csv(gii_file, out_file, itk_lps = True):
         gii = nib.load(gii_file)
@@ -77,12 +80,15 @@ def hippograd2gifti(gradients, hemi):
     """Assiging gradients from numpy output to easily saveable gifti format
 
     Args:
-        gradients (_type_): _description_
-        hemi (string): Specifies hemisphere
+        gradients (numpy array): _description_
+        hemi (string): Specifies hemisphere for generating 
 
     Returns:
         gifti: _description_
     """
+    hemi = hemi.strip().upper()
+    gradients = gradients.T
+
     gii = nib.gifti.GiftiImage()
 
     for g in range(0,len(gradients)):
@@ -90,7 +96,7 @@ def hippograd2gifti(gradients, hemi):
             nib.gifti.GiftiDataArray(
                 data = gradients[g].astype(np.float32),
                 meta = {
-                    'AnatomicalStructurePrimary':'CortexLeft' if hemi is 'L' else 'CortexRight',
+                    'AnatomicalStructurePrimary':'CORTEX_LEFT' if hemi == 'L' else 'CORTEX_RIGHT',
                     'Name':'Gradient {}'.format(g+1)
                     }
                 )
@@ -98,7 +104,7 @@ def hippograd2gifti(gradients, hemi):
     return gii
 
 # from neurohackacademy tutorial
-def surf_data_from_cifti(data, surf_name):
+def loadcifti_surf(data, surf_name):
     """Loading structure specific surface data from cifti files into numpy arrays
 
     Args:
@@ -124,6 +130,21 @@ def surf_data_from_cifti(data, surf_name):
             return surf_data
     raise ValueError(f"No structure named {surf_name}")
 
+def loadciftiLRstruct(cifti_path,struct):
+    """Load left and right hemispheres of structure
+
+    Args:
+        cifti_path (string): Path to cifti file.
+        struct (string): Specify structure to load.
+
+    Returns:
+        numpy array: _description_
+    """
+    cifti_data = nib.load(cifti_path)
+    struct = struct.strip().upper()
+    structL = loadcifti_surf(cifti_data, struct + '_LEFT')
+    structR = loadcifti_surf(cifti_data, struct + '_RIGHT')
+    return np.concatenate([structL,structR]).T
 
 def fetch_atlas_path(atlas,n_parc,parc_dir):
     """Fetching path the atlas. All parcellation where downloaded via brainstat package (https://github.com/MICA-MNI/BrainStat).
@@ -153,3 +174,69 @@ def fetch_atlas_path(atlas,n_parc,parc_dir):
         raise ValueError(f'{parc_dir} path does not exist.')
     else:
         return os.path.join(parc_dir,atlas+str(n_parc)+'.npy')
+
+def pull_data(cifti,structure):
+  """Loads left and right hemispheres of specified structure data from cifti file
+
+  Args:
+      cifti (string): File path to cifti file.
+      structure (string): Structure to pull data for.
+
+  Returns:
+      np.array: Left and right (in that order) cifti data for specified structure.
+  """
+
+  cifti_file = nib.load(cifti)
+  header_data = cifti_file.header.get_axis(1)
+  for brain_structure in header_data.iter_structures():
+      if brain_structure[0] == f'CIFTI_STRUCTURE_{structure.upper()}_LEFT':
+          start = brain_structure[1].start
+      if brain_structure[0] == f'CIFTI_STRUCTURE_{structure.upper()}_RIGHT':
+          stop = brain_structure[1].stop
+  data = cifti_file.get_fdata()[:,start:stop]
+  return np.transpose(data)
+
+# borrowed from Jordan Dekraker hippunfold_toolbox url: https://github.com/jordandekraker/hippunfold_toolbox/blob/caa60bec5ec28073acd3f70b299e882826911f97/Python/utils.py
+def fillnanvertices(F,V):
+    '''Fills NaNs by iteratively nanmean nearest neighbours until no NaNs remain. Can be used to fill missing vertices OR missing vertex cdata.'''
+    Vnew = copy.deepcopy(V)
+    while np.isnan(np.sum(Vnew)):
+        # index of vertices containing nan
+        vrows = np.unique(np.where(np.isnan(Vnew))[0])
+        # replace with the nanmean of neighbouring vertices
+        for n in vrows:
+            frows = np.where(F == n)[0]
+            neighbours = np.unique(F[frows,:])
+            Vnew[n] = np.nanmean(Vnew[neighbours], 0)
+    return Vnew
+
+def density_interp(indensity, outdensity, cdata, method='nearest', resources_dir='/data/mica3/opt/hippunfold/hippunfold/resources'):
+    '''interpolates data from one surface density onto another via unfolded space
+    Inputs:
+      indensity: one of '0p5mm', '1mm', '2mm', or 'unfoldiso
+      outdensity: one of '0p5mm', '1mm', '2mm', or 'unfoldiso
+      cdata: data to be interpolated (same number of vertices, N, as indensity)
+      method: 'nearest', 'linear', or 'cubic'. 
+      resources_dir: path to hippunfold resources folder
+    Outputs: 
+      interp: interpolated data
+      faces: face connectivity from new surface density'''
+    
+    VALID_STATUS = {'0p5mm', '1mm', '2mm', 'unfoldiso'}
+    if indensity not in VALID_STATUS:
+        raise ValueError("results: indensity must be one of %r." % VALID_STATUS)
+    if outdensity not in VALID_STATUS:
+        raise ValueError("results: outdensity must be one of %r." % VALID_STATUS)
+    
+    # load unfolded surfaces for topological matching
+    startsurf = nib.load(f'{resources_dir}/unfold_template_hipp/tpl-avg_space-unfold_den-{indensity}_midthickness.surf.gii')
+    vertices_start = startsurf.get_arrays_from_intent('NIFTI_INTENT_POINTSET')[0].data
+    targetsurf = nib.load(f'{resources_dir}/unfold_template_hipp/tpl-avg_space-unfold_den-{outdensity}_midthickness.surf.gii')
+    vertices_target = targetsurf.get_arrays_from_intent('NIFTI_INTENT_POINTSET')[0].data
+    faces = targetsurf.get_arrays_from_intent('NIFTI_INTENT_TRIANGLE')[0].data
+
+    # interpolate
+    interp = griddata(vertices_start[:,:2], values=cdata, xi=vertices_target[:,:2], method=method)
+    # fill any NaNs
+    interp = fillnanvertices(faces,interp)
+    return interp,faces,vertices_target

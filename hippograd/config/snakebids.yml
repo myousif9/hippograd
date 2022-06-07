@@ -153,8 +153,6 @@ parse_args:
     default: 0p5mm 
     choices:
       - 0p5mm
-      - 1mm
-      - 2mm
     nargs: '+' 
     required: False
 
@@ -171,7 +169,7 @@ parse_args:
 
   # --hemi_cortex:
   #   help:
-  #   default: both
+  #   default: ipsilateral
   #   choices:
   #     - ipsilateral
   #     - contralateral
@@ -192,7 +190,11 @@ parse_args:
 
   
   --reference_gradient:
-    help: Passing reference gradient for allignment of subject gradients.
+    help: Passing reference gradient for allignment of subject gradients. Must define left reference gradient first and then the right reference gradient.
+    default: 
+      - resources/referance_gradients/AvgGradient_HCP-UR100_hemi-L.npy
+      - resources/referance_gradients/AvgGradient_HCP-UR100_hemi-R.npy
+    nargs: '+'
     required: False
 
   --cortex_parcellation:
@@ -200,62 +202,50 @@ parse_args:
     default: schaefer
     choices:
       - schaefer
-      - glasser
-      - cammoun
-      - yeo
-
-  --n_parcels:
-    help: Select the number of parcels
+  
+  --n_parcel:
+    help: 'Select the number of parcels. Valid parcel numbers for schaefer atlas are 100, 200, 300, 400, 500, 600, 700, 800, 1000; for glasser is 360; for cammoun is 33, 60, 125, 250, 500; for yeo is 7, 17'
     default: 400
     choices:
-      - 100
-      - 200
-      - 300
       - 400
-      - 500
-      - 600
-      - 700
-      - 800
-      - 1000
-      - 360
-      - 33
-      - 60
-      - 125
-      - 250
-      - 7
-      - 17
+    nargs: 1
+    required: False
 
-
-
-  # --affinity_kernel:
-  #   help: Specifying the method to use to compute the affinity matrix
-  #   default: cosine
-  #   choices:
-  #     - pearson
-  #     - spearman
-  #     - cosine
-  #     - normalized_angle
-  #   nargs: 1
-  #   required: False
-
-  # --align_method:
-  #   help: Specifying gradient allignment method to be used
-  #   default: procrustes
-  #   choices:
-  #     - procrustes
-  #     - joint
-  #     - none
-  #   required: False 
+  --affinity_kernel:
+    help: Specifying the method to use to compute the affinity matrix
+    default: cosine
+    choices:
+      - pearson
+      - spearman
+      - cosine
+      - normalized_angle
+    nargs: 1
+    required: False
   
-  # --dim_reduction_method:
-  #   help: Specifying the dimensionality reduction method to be used to compute gradients
-  #   default: DiffusionMaps
-  #   choices:
-  #     - DiffusionMaps
-  #     - LaplacianEigenMaps
-  #     - PCAMaps
-  #   nargs: 1
-  #   required: False
+  --embedding_approach:
+    help: Specifying the embedding approach to be used dm = diffusion maps, le = laplacian eigenmaps and pca = pricinpal component analysis maps.
+    default: dm
+    choices:
+      - dm
+      - le
+      - pca
+    nargs: 1
+    required: False
+
+  --align_method:
+    help: Specifying gradient allignment method to be used
+    default: procrustes
+    choices:
+      - procrustes
+      - joint
+      - none
+    required: False 
+  
+  --smoothing_kernel:
+    help:
+    default: 0.5
+    nargs: 1
+    required: False
     
 #--- workflow specific configuration -- below is just an example:
 
@@ -267,8 +257,6 @@ singularity:
   autotop: '/scratch/myousif9/containers/autotop_deps_v0.4.1.sif'
   # ants: docker://kaczmarj/ants:2.3.4
   # autotop: docker://khanlab/autotop_deps:v0.4.1
-# atlas:
-#   schaefer400: 'resources/schaefer400.npy'
 
 
 

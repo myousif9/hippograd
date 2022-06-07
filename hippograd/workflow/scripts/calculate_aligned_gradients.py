@@ -11,8 +11,8 @@ affinity_matrix = np.load(snakemake.input.affinity_matrix)
 logging.info('Subject affinity matrix loaded.')
 
 # Load average affinity matrix
-avg_affinity_matrix = np.load(snakemake.input.avg_affinity_matrix)
-logging.info('Average affinity matrix loaded.')
+avg_affinity_matrix = np.load(snakemake.input.reference_gradient)
+logging.info('Reference affinity matrix loaded.')
 
 # Calculate gradients based on normalized angle matrix
 # Kernel = none as input matrix is already affinity matrix

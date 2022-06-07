@@ -100,5 +100,3 @@ rule set_surf_structure:
         wb_command -set-structure {input.surf} {params.structure} -surface-type ANATOMICAL &> {log}
         touch {output.check}
         '''
-
-

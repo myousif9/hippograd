@@ -153,6 +153,8 @@ parse_args:
     default: 0p5mm 
     choices:
       - 0p5mm
+      - 1mm
+      - 2mm
     nargs: '+' 
     required: False
 
@@ -192,8 +194,8 @@ parse_args:
   --reference_gradient:
     help: Passing reference gradient for allignment of subject gradients. Must define left reference gradient first and then the right reference gradient.
     default: 
-      - resources/referance_gradients/AvgGradient_HCP-UR100_hemi-L.npy
-      - resources/referance_gradients/AvgGradient_HCP-UR100_hemi-R.npy
+      - resources/reference_gradients/AvgGradient_HCP-UR100_hemi-L.npy
+      - resources/reference_gradients/AvgGradient_HCP-UR100_hemi-R.npy
     nargs: '+'
     required: False
 
@@ -242,7 +244,7 @@ parse_args:
     required: False 
   
   --smoothing_kernel:
-    help:
+    help: Specifying the size of smoothing kernel in millimeters (mm). Default is 0.5 mm.
     default: 0.5
     nargs: 1
     required: False

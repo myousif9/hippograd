@@ -1,5 +1,5 @@
 from scripts.utilities import fetch_atlas_path
-import os
+from os.path import join
 
 bold_surf_clean = bids(
     root = 'results',
@@ -59,9 +59,9 @@ rule compute_gradients:
         rfmri_ctx = lambda wildcards: fmriclean_surf_dict[wildcards.subject]
     params:
         n_gradients = config['n_gradients'],
-        parcellation = fetch_atlas_path(config['cortex_parcellation'],config['n_parcel'],os.path.join(workflow.basedir,'..','resources','parcellations')),
-        refgradL = config['reference_gradient'][0],
-        refgradR = config['reference_gradient'][1],
+        parcellation = fetch_atlas_path(config['cortex_parcellation'],config['n_parcel'], join(workflow.basedir,'..','resources','parcellations')),
+        refgradL = join(workflow.basedir,'..',config['reference_gradient'][0]),
+        refgradR = join(workflow.basedir,'..',config['reference_gradient'][1]),
         kernel = config['affinity_kernel'],
         embedding = config['embedding_approach'],
         align = config['align_method'],
@@ -75,6 +75,16 @@ rule compute_gradients:
             space = 'MNI152NLin2009cAsym',
             den = '{density}',
             suffix = 'correlationmatrix.npy',
+            **subj_wildcards
+            ),
+        lambdas = bids(
+            root = 'results',
+            datatype = 'func',
+            task = '{task}',
+            hemi = '{hemi}',
+            space = 'MNI152NLin2009cAsym',
+            den = '{density}',
+            suffix = 'lambdas.npy',
             **subj_wildcards
             ),
         gradient_maps = bids(
@@ -130,6 +140,51 @@ rule grad_smooth:
     shell: 
         '''
         wb_command -set-structure {input.gradmap} {params.structure} -surface-type ANATOMICAL &> {log}
-        wb_command -metric-smoothing {input.surf} {input.gradmap} 
+        wb_command -metric-smoothing {input.surf} {input.gradmap} {params.smoothing_kernel} {output.surf_smooth}
         touch {output.check}
         '''
+rule create_spec:
+    input: 
+        surf = rules.csv2gifti.output.surf,
+        rfmri_hipp = rules.map_rfmri_hippunfold_surface.output.fmri_surf, 
+        gradmap = rules.compute_gradients.output.gradient_maps,
+        gradmap_smooth = rules.grad_smooth.output.surf_smooth,
+    params:
+        structure = 'CORTEX_LEFT' if '{hemi}' == 'L' else 'CORTEX_RIGHT',
+        unfold = join(workflow.basedir,'..',config['reference_gradient'][0])
+    output:
+        spec = bids(
+            root = 'work',
+            task = '{task}',
+            hemi = '{hemi}',
+            den = '{density}',
+            suffix = 'hippograd.spec',
+            **subj_wildcards
+        ),
+    container: config['singularity']['autotop']
+    group: 'subj' 
+    shell: 
+        '''
+        wb_command -add-to-spec-file {output.spec} {params.structure} {input.surf}
+        wb_command -add-to-spec-file {output.spec} {params.structure} {input.rfmri_hipp}
+        wb_command -add-to-spec-file {output.spec} {params.structure} {input.gradmap}
+        wb_command -add-to-spec-file {output.spec} {params.structure} {input.gradmap_smooth}
+        ''' 
+
+rule joinLRspec:
+    input: 
+        spec = expand(rules.create_spec.output.spec, hemi = config['hemi'], allow_missing = True)
+    output: 
+        spec = bids(
+            root = 'results',
+            task = '{task}',
+            den = '{density}',
+            suffix = 'hippograd.spec',
+            **subj_wildcards
+        ),
+    container: config['singularity']['autotop']
+    group: 'subj'
+    shell:
+        '''
+        wb_command -spec-file-merge {input.spec} {output.spec}
+        ''' 

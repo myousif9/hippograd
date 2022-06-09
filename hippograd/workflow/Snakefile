@@ -173,6 +173,29 @@ rule all:
             **transform_inlist
             ),
 
+        expand(bids(
+            root = 'work',
+            task = '{task}',
+            hemi = '{hemi}',
+            den = '{density}',
+            suffix = 'hippograd.spec',
+            **subj_wildcards),
+            hemi = config['hemi'],
+            density =  config['density'],
+            task = config['task'],
+            **transform_inlist
+        ),
+
+        expand(bids(
+            root = 'results',
+            task = '{task}',
+            den = '{density}',
+            suffix = 'hippograd.spec',
+            **subj_wildcards),
+            density =  config['density'],
+            task = config['task'],
+            **transform_inlist
+        ),
 # adding rules to pipeline
 include: 'rules/fmriclean.smk'
 

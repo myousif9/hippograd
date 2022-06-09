@@ -4,7 +4,7 @@ import logging
 
 from brainspace.utils.parcellation import reduce_by_labels
 from brainspace.gradient import GradientMaps
-from utilities import loadciftiLRstruct, hippograd2gifti
+from utilities import loadciftiLRstruct, hippograd2gifti, density_interp
 
 def generate_correlation_map(x, y):
   """Correlate each n with each m.
@@ -112,6 +112,7 @@ if __name__ == '__main__':
   # define variables for output file paths
   gradient_output = snakemake.output.gradient_maps
   correlation_matrix_output = snakemake.output.correlation_matrix
+  lambdas = snakemake.output.lambdas
   logfile = snakemake.log[0]
   
   logging.basicConfig(filename=logfile, level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S: %p') 
@@ -123,6 +124,8 @@ if __name__ == '__main__':
   n_gradients = snakemake.params.n_gradients
   kernel = snakemake.params.kernel
   embedding = snakemake.params.embedding
+  align = snakemake.params.align
+  density = snakemake.wildcards.density
   logging.info('I/O variables defined.')  
 
   corr_mat = compute_correlation_matrix(fmri_hipp_path,fmri_ctx_path,atlas_path=atlas_path,logfile=logfile)
@@ -130,12 +133,19 @@ if __name__ == '__main__':
   np.save(correlation_matrix_output,corr_mat)
   logging.info('Correlation matrix computed and saved.')
 
+  reference_grad_data = np.load(reference_grad)
 
-  gm = GradientMaps(n_components=n_gradients, approach=embedding, kernel=kernel)
-  gm.fit(corr_mat, reference=reference_grad, sparsity=0),
+  if density != '0p5mm':
+    reference_grad_data = density_interp('0p5mm',density, reference_grad)
+    logging.info('Reference gradient resampled from density 0p5mm and %s',density)
+
+  gm = GradientMaps(n_components=n_gradients, approach=embedding, kernel=kernel, alignment=align)
+  gm.fit(corr_mat, reference = reference_grad_data, sparsity=0),
   logging.info('Gradient maps computed.')
 
-  gii = hippograd2gifti(gm.gradients_,hemi)
+  np.save(lambdas, gm.lambdas_)
+  logging.info('Lambdas saved.')
+
+  gii = hippograd2gifti(gm.aligned_,hemi)
   gii.to_filename(gradient_output)
   logging.info('Gradient maps saved to %s.', gradient_output)
-

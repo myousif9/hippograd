@@ -128,15 +128,11 @@ parse_args:
     nargs: '+'
 
  # custom command-line parameters can then be added, these will get added to the config
- # below is an example to override config['bet_frac']
+
   --hippunfold_dir:
     help: The directory with completed hippunfold output.
     required: True
   
-  # --fmriprep_dir:
-  #   help: Specifying the path to the fmriprep_directory.
-  #   required: False
-
   --fmri_clean_strategy:
     help: 'Selecting from predefined fmri cleaning strategies'
     default: simple
@@ -169,14 +165,14 @@ parse_args:
     nargs: '+'
     required: False
 
-  # --hemi_cortex:
-  #   help:
-  #   default: ipsilateral
-  #   choices:
-  #     - ipsilateral
-  #     - contralateral
-  #     - both  
-  #   required: False
+  --cortex_lateralization:
+    help: Specifying whether to calculate correlations from hippocampal verticies to ipsilateral, contralateral or both cortex hemispheres. 
+    default: ipsilateral
+    choices:
+      - ipsilateral
+      - contralateral
+      - both  
+    required: False
 
   --task:
     help: Define task event for fMRI acquision.
@@ -184,11 +180,11 @@ parse_args:
     nargs: 1
     required: False
   
-  # --run:
-  #   help: Selecting either a specific run number or selecting the 'max' or 'min' run.
-  #   default: max
-  #   nargs: 1
-  #   required: False
+  --run:
+    help: Selecting either a specific run number or selecting the 'max' or 'min' run.
+    default: max
+    nargs: 1
+    required: False
 
   
   --reference_gradient:
@@ -204,12 +200,31 @@ parse_args:
     default: schaefer
     choices:
       - schaefer
+      - glasser
+      - cammoun
+      - yeo
+    required: False
   
   --n_parcel:
     help: 'Select the number of parcels. Valid parcel numbers for schaefer atlas are 100, 200, 300, 400, 500, 600, 700, 800, 1000; for glasser is 360; for cammoun is 33, 60, 125, 250, 500; for yeo is 7, 17'
     default: 400
     choices:
+      - 100
+      - 200
+      - 300
       - 400
+      - 500
+      - 600
+      - 800
+      - 1000
+      - 360
+      - 33
+      - 60
+      - 125
+      - 250
+      - 500
+      - 7
+      - 17
     nargs: 1
     required: False
 

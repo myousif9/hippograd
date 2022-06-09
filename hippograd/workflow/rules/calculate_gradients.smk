@@ -29,7 +29,7 @@ rule map_rfmri_hippunfold_surface:
         surf = rules.csv2gifti.output.surf,
         fmri_vol = lambda wildcards: fmriclean_vol_dict[wildcards.subject]
     params:
-        structure = 'CORTEX_LEFT' if '{hemi}' == 'L' else 'CORTEX_RIGHT'
+        structure = lambda wildcards: 'CORTEX_LEFT' if wildcards.hemi == 'L' else 'CORTEX_RIGHT'
     output:
         fmri_surf = bids(
             root = 'results',
@@ -66,6 +66,7 @@ rule compute_gradients:
         embedding = config['embedding_approach'],
         align = config['align_method'],
         density = config['density'],
+        cortex_lateralization = config['cortex_lateralization'],
     output:
         correlation_matrix = bids(
             root = 'results',
@@ -111,7 +112,7 @@ rule grad_smooth:
         gradmap = rules.compute_gradients.output.gradient_maps,
         surf = rules.csv2gifti.output.surf
     params:
-        structure = 'CORTEX_LEFT' if '{hemi}' == 'L' else 'CORTEX_RIGHT',
+        structure = lambda wildcards: 'CORTEX_LEFT' if wildcards.hemi == 'L' else 'CORTEX_RIGHT',
         smoothing_kernel = config['smoothing_kernel']
     output:
         check = bids(
@@ -150,7 +151,7 @@ rule create_spec:
         gradmap = rules.compute_gradients.output.gradient_maps,
         gradmap_smooth = rules.grad_smooth.output.surf_smooth,
     params:
-        structure = 'CORTEX_LEFT' if '{hemi}' == 'L' else 'CORTEX_RIGHT',
+        structure = lambda wildcards: 'CORTEX_LEFT' if wildcards.hemi == 'L' else 'CORTEX_RIGHT',
         unfold = join(workflow.basedir,'..',config['reference_gradient'][0])
     output:
         spec = bids(

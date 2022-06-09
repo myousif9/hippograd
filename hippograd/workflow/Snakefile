@@ -76,6 +76,7 @@ subjects = set(bold_vol_inlist['subject']) & set(bold_surf_inlist['subject']) & 
 
 # converting subjects set to list and assigning all input lists similar subject inputs
 subjects = list(subjects)
+run_input = config['run'][0] if isinstance(config['run'],list) else config['run']
 
 bold_vol_inlist['subject'] = subjects
 bold_surf_inlist['subject'] = subjects
@@ -88,14 +89,28 @@ if 'run' in bold_vol_ziplist.keys():
         # finding subject scan name features with boolean
         sub_bool = [ bold_sub == subj for bold_sub in bold_vol_ziplist['subject'] ] 
         if  sum(sub_bool) > 1 :
+            
+            # making list of indicies corresponding to specific subjects and finding the number of fmri runs
             sub_indicies = list(compress(range(len(bold_vol_ziplist['run'])), sub_bool))
             sub_runs = [bold_vol_ziplist['run'][s_idx] for s_idx in sub_indicies]
-            min_run_bool = [run == min(sub_runs) for run in sub_runs]
-            min_run_idx = list(compress(sub_indicies, min_run_bool))[0]
+            
+            # creating boolean lists indicating the the selected max, min or specified number run as False
+            if run_input == 'max':
+                run_bool = [run != max(sub_runs) for run in sub_runs]
+            elif run_input == 'min':
+                run_bool = [run != min(sub_runs) for run in sub_runs]
+            elif run_input.isnumeric():
+                run_bool = [run != run_input for run in sub_runs]
+            else:
+                raise ValueError('Invalid input given for run selection.')
 
+            # creading a list of indicies correspeonding to the indicies of the runs not selected 
+            run_idx = list(compress(sub_indicies, run_bool))[0]
+
+            # deleting the non selected runs from ziplists for bold images
             for param in bold_vol_ziplist:
-                del bold_vol_ziplist[param][min_run_idx]
-                del bold_surf_ziplist[param][min_run_idx]
+                del bold_vol_ziplist[param][run_idx]
+                del bold_surf_ziplist[param][run_idx]
         else:
             continue
 
@@ -196,9 +211,10 @@ rule all:
             task = config['task'],
             **transform_inlist
         ),
+
 # adding rules to pipeline
 include: 'rules/fmriclean.smk'
 
-include: 'rules/post_hippunfold.smk'
+include: 'rules/hippunfold_surf_preprocess.smk'
 
-include: 'rules/post_fmriclean.smk'
+include: 'rules/calculate_gradients.smk'

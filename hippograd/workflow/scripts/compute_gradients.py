@@ -126,9 +126,10 @@ if __name__ == '__main__':
   embedding = snakemake.params.embedding
   align = snakemake.params.align
   density = snakemake.wildcards.density
+  ctx_lateralization = snakemake.params.cortex_lateralization
   logging.info('I/O variables defined.')  
 
-  corr_mat = compute_correlation_matrix(fmri_hipp_path,fmri_ctx_path,atlas_path=atlas_path,logfile=logfile)
+  corr_mat = compute_correlation_matrix(fmri_hipp_path,fmri_ctx_path,atlas_path=atlas_path,lateralization=ctx_lateralization,logfile=logfile)
   
   np.save(correlation_matrix_output,corr_mat)
   logging.info('Correlation matrix computed and saved.')

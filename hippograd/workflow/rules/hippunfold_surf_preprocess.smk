@@ -82,7 +82,7 @@ rule set_surf_structure:
     input:
         surf = rules.csv2gifti.output.surf
     params:
-        structure = 'CORTEX_LEFT' if '{hemi}' == 'L' else 'CORTEX_RIGHT'
+        structure = lambda wildcards: 'CORTEX_LEFT' if wildcards.hemi == 'L' else 'CORTEX_RIGHT'
     output:
         check = bids(
             root = 'work',

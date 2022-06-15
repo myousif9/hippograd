@@ -2,8 +2,9 @@ from nilearn.interfaces.fmriprep import load_confounds_strategy
 from nilearn.image import clean_img, smooth_img
 from nilearn.signal import clean
 import nibabel as nib
-import pandas as pd
+import numpy as np
 import logging
+from utilities import smask_cifti
 
 
 
@@ -32,14 +33,31 @@ def clean_fmri(img_path, mask_path=None, clean_strategy='simple', logfile=None, 
         mask = smooth_img(mask_path,None) if mask_path != None else None
         logging.info('Volume fMRI image and mask loaded!')
 
-        fmri_clean = clean_img(img, confounds = confounds, mask_img=mask, **kwargs)
+        if isinstance(sample_mask,np.ndarray):
+            smask_data = img.get_fdata()[:,:,:,sample_mask]
+            img = nib.Nifti1Image(smask_data,img.affine,img.header)
+            img.update_header()
+            confounds = confounds.iloc[sample_mask,:]
+            logging.info('Volume image sample masked.')
+
+        fmri_clean = clean_img(img, confounds = confounds, mask_img=mask,**kwargs)
     else:
         img = nib.load(img_path)
         img_data = img.get_fdata()
+        img_hdr = img.header
+        img_nii_hdr = img.nifti_header
         logging.info('Surface fMRI loaded!')
 
-        fmri_clean_data = clean(img_data,confounds=confounds,**kwargs)
-        fmri_clean = nib.cifti2.Cifti2Image(fmri_clean_data,header=img.header,nifti_header=img.nifti_header)
+        if isinstance(sample_mask,np.ndarray):
+            img_smask = smask_cifti(img,sample_mask)
+            img_data = img_smask.get_fdata()
+            img_hdr = img_smask.header
+            img_nii_hdr = img_smask.nifti_header
+            confounds = confounds.iloc[sample_mask,:]
+            logging.info('Cifti fMRI sample masked!')
+
+        fmri_clean_data = clean(img_data, confounds=confounds, **kwargs)
+        fmri_clean = nib.Cifti2Image(fmri_clean_data, img_hdr, img_nii_hdr)
         fmri_clean.update_headers()
     
     logging.info('fMRI cleaned!')

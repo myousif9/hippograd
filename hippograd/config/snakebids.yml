@@ -270,10 +270,9 @@ n_gradients: 10
 
 #singularity containers
 singularity:
-  ants: '/scratch/myousif9/containers/ants_2.3.4.sif'
-  autotop: '/scratch/myousif9/containers/autotop_deps_v0.4.1.sif'
-  # ants: docker://kaczmarj/ants:2.3.4
-  # autotop: docker://khanlab/autotop_deps:v0.4.1
+  ants: docker://kaczmarj/ants:2.3.4
+  autotop: docker://khanlab/autotop_deps:v0.4.1
+
 
 
 

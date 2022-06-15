@@ -240,3 +240,39 @@ def density_interp(indensity, outdensity, cdata, method='nearest', resources_dir
     # fill any NaNs
     interp = fillnanvertices(faces,interp)
     return interp,faces,vertices_target
+
+def smask_cifti(img,smask):
+    """Function for applying sample mask to cifti fMRI data.
+
+    Args:
+        img (Cifti Niimg-like object): Cifti fMRI data.
+        smask (numpy array): Array of indicies of fMRI time series to sample.
+
+    Returns:
+        Cifti Nii-like object: Sample masked fMRI data. 
+    """
+    if isinstance(smask,type(None)):
+        return img
+    else:
+        hdr = img.header
+        series = hdr.get_axis(0)
+        series.size = np.size(smask)
+        series_mapping = series.to_mapping(0)
+        
+        brain_model = img.header.get_axis(1)
+        brain_model_mapping = brain_model.to_mapping(1)
+        
+        nifti_hdr = img.nifti_header
+        
+        mtx = nib.cifti2.Cifti2Matrix()
+        mtx.append(series_mapping)
+        mtx.append(brain_model_mapping)
+        
+        smask_hdr = nib.Cifti2Header(mtx)
+        smask_data = img.get_fdata()[smask,:]
+
+        smask_img = nib.Cifti2Image(smask_data,smask_hdr,nifti_hdr)
+        smask_img.update_headers()
+        
+        return smask_img
+    

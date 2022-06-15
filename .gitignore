@@ -1,5 +1,4 @@
 **/logs
-*.out
-*.pyc
-**/__pycache__
-.github/
+**/*.out
+**/*.pyc
+**/__pycache__/

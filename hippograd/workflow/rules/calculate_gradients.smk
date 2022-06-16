@@ -59,7 +59,7 @@ rule compute_gradients:
         rfmri_ctx = lambda wildcards: fmriclean_surf_dict[wildcards.subject]
     params:
         n_gradients = config['n_gradients'],
-        parcellation = fetch_atlas_path(config['cortex_parcellation'],config['n_parcel'], join(workflow.basedir,'..','resources','parcellations')),
+        parcellation = None if config['cortex_parcellation'] == 'none' else fetch_atlas_path(config['cortex_parcellation'],config['n_parcel'], join(workflow.basedir,'..','resources','parcellations')),
         refgradL = join(workflow.basedir,'..',config['reference_gradient'][0]),
         refgradR = join(workflow.basedir,'..',config['reference_gradient'][1]),
         kernel = config['affinity_kernel'],

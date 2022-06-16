@@ -80,6 +80,8 @@ def compute_correlation_matrix(rfmri_hippo_path, rfmri_ctx_path, hippo_hemi=None
 
     else:
       ctx = rfmri_ctx_data_rest
+    
+    ctx = ctx.T
 
   # Compute hipp vertex-wise correlation matrix first
   correlation_matrix = generate_correlation_map(rfmri_hipp_data_rest,ctx)
@@ -124,7 +126,10 @@ if __name__ == '__main__':
   n_gradients = snakemake.params.n_gradients
   kernel = snakemake.params.kernel
   embedding = snakemake.params.embedding
+  
   align = snakemake.params.align
+  align = None if align == 'none' else align
+
   density = snakemake.wildcards.density
   ctx_lateralization = snakemake.params.cortex_lateralization
   logging.info('I/O variables defined.')  
@@ -146,7 +151,11 @@ if __name__ == '__main__':
 
   np.save(lambdas, gm.lambdas_)
   logging.info('Lambdas saved.')
-
-  gii = hippograd2gifti(gm.aligned_,hemi)
+  
+  if align == 'procrustes':
+    gii = hippograd2gifti(gm.aligned_,hemi)
+  else:
+    gii = hippograd2gifti(gm.gradients_,hemi)
+  
   gii.to_filename(gradient_output)
   logging.info('Gradient maps saved to %s.', gradient_output)

@@ -203,6 +203,7 @@ parse_args:
       - glasser
       - cammoun
       - yeo
+      - none
     required: False
   
   --n_parcel:

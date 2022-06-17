@@ -151,6 +151,7 @@ parse_args:
       - 0p5mm
       - 1mm
       - 2mm
+      - unfoldiso
     nargs: '+' 
     required: False
 
@@ -260,8 +261,8 @@ parse_args:
     required: False 
   
   --smoothing_kernel:
-    help: Specifying the size of smoothing kernel in millimeters (mm). Default is 0.5 mm.
-    default: 0.5
+    help: Specifying the size of smoothing kernel in millimeters (mm). Default is 1 mm.
+    default: 1
     nargs: 1
     required: False
     

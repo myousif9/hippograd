@@ -37,7 +37,9 @@ hippunfold_dir = join(hippunfold_dir,'hippunfold') if 'hippunfold' != hippunfold
 
 hippunfold_subjects = [sub.lstrip('sub-') for sub in os.listdir(hippunfold_dir) if 'sub-' in sub]
 
-hippunfold_paths = [glob(join(hippunfold_dir, "sub-{subject}/surf/sub-{subject}_hemi-*_space-T1w_den-0p5mm_label-hipp_midthickness.surf.gii".format(subject=subj, density=config['density'])))[0].replace('hemi-L','hemi-{hemi}').replace('hemi-R','hemi-{hemi}') for subj in hippunfold_subjects]
+density = config['density'][0] if isinstance(config['density'],list) else config['density']
+
+hippunfold_paths = [glob(join(hippunfold_dir, "sub-{subject}/surf/sub-{subject}_hemi-*_space-T1w_den-{density}_label-hipp_midthickness.surf.gii".format(subject=subj, density=density)))[0].replace('hemi-L','hemi-{hemi}').replace('hemi-R','hemi-{hemi}') for subj in hippunfold_subjects]
 
 hippunfold_input_list = [[], []]
 

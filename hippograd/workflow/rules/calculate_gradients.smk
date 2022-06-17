@@ -52,20 +52,12 @@ rule map_rfmri_hippunfold_surface:
         '''
         wb_command -volume-to-surface-mapping {input.fmri_vol} {input.surf} {output.fmri_surf} -trilinear &> {log}
         '''
-
-rule compute_gradients:
-    input:
+rule compute_correlation_matrix:
+    input: 
         rfmri_hipp = rules.map_rfmri_hippunfold_surface.output.fmri_surf,
         rfmri_ctx = lambda wildcards: fmriclean_surf_dict[wildcards.subject]
     params:
-        n_gradients = config['n_gradients'],
         parcellation = None if config['cortex_parcellation'] == 'none' else fetch_atlas_path(config['cortex_parcellation'],config['n_parcel'], join(workflow.basedir,'..','resources','parcellations')),
-        refgradL = join(workflow.basedir,'..',config['reference_gradient'][0]),
-        refgradR = join(workflow.basedir,'..',config['reference_gradient'][1]),
-        kernel = config['affinity_kernel'],
-        embedding = config['embedding_approach'],
-        align = config['align_method'],
-        density = config['density'],
         cortex_lateralization = config['cortex_lateralization'],
     output:
         correlation_matrix = bids(
@@ -78,6 +70,28 @@ rule compute_gradients:
             suffix = 'correlationmatrix.npy',
             **subj_wildcards
             ),
+    threads: 8
+    resources:
+        mem_mb = 16000,
+        time = 60
+    group: 'subj'
+    log: bids(root = 'logs',**subj_wildcards, task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'compute_correlation_matrix.txt')
+    script: '../scripts/compute_correlation.py'
+
+rule compute_gradients:
+    input:
+        correlation_matrix = rules.compute_correlation_matrix.output.correlation_matrix
+    params:
+        n_gradients = config['n_gradients'],
+        refgradL = join(workflow.basedir,'..',config['reference_gradient'][0]),
+        refgradR = join(workflow.basedir,'..',config['reference_gradient'][1]),
+        kernel = config['affinity_kernel'],
+        embedding = config['embedding_approach'],
+        align = config['align_method'],
+        density = config['density'],
+        cortex_lateralization = config['cortex_lateralization'],
+        resource_dir = join(workflow.basedir,'../resources'),
+    output:
         lambdas = bids(
             root = 'results',
             datatype = 'func',
@@ -101,7 +115,7 @@ rule compute_gradients:
             ),
     threads: 8
     resources:
-        mem_mb = 16000,
+        mem_mb = 32000,
         time = 60
     group: 'subj'
     log: bids(root = 'logs',**subj_wildcards, task = '{task}', hemi = '{hemi}', den = '{density}', suffix = 'compute_gradients.txt')

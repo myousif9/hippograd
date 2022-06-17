@@ -210,7 +210,7 @@ def fillnanvertices(F,V):
             Vnew[n] = np.nanmean(Vnew[neighbours], 0)
     return Vnew
 
-def density_interp(indensity, outdensity, cdata, method='nearest', resources_dir='../../resources/'):
+def density_interp(indensity, outdensity, cdata, method='nearest', resources_dir='../resources'):
     '''interpolates data from one surface density onto another via unfolded space
     Inputs:
       indensity: one of '0p5mm', '1mm', '2mm', or 'unfoldiso
